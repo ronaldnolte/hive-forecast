@@ -223,6 +223,9 @@ function ForecastContent() {
 
                 {!loading && forecast && (
                     <div className="space-y-6">
+                        <div className="text-center md:hidden text-muted-foreground text-xs italic mb-2">
+                            Turn screen landscape for better viewing
+                        </div>
                         <div className="flex flex-wrap gap-3 justify-center text-sm">
                             <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 rounded bg-green-600"></div>
