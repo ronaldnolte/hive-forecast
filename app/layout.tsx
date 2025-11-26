@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Bee Inspection Forecast Application",
   icons: {
     icon: "/icon.jpg",
+    shortcut: "/icon.jpg",
+    apple: "/icon.jpg",
   },
 };
 
