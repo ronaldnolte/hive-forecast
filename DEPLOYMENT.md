@@ -1,6 +1,6 @@
-# Deployment Guide
+# Deployment Guide for HiveForecast
 
-This guide outlines the steps to deploy the Standalone Forecast App to Vercel.
+This guide outlines the steps to deploy HiveForecast to Vercel.
 
 ## Prerequisites
 
@@ -10,14 +10,14 @@ This guide outlines the steps to deploy the Standalone Forecast App to Vercel.
 ## Option 1: Deploy via GitHub (Recommended)
 
 1.  **Create a GitHub Repository**:
-    -   Go to GitHub and create a new repository (e.g., `standalone-forecast-app`).
+    -   Go to GitHub and create a new repository (e.g., `hive-forecast`).
     -   Do not initialize with README, .gitignore, or license (we have them).
 
 2.  **Push Code to GitHub**:
     Run the following commands in your terminal:
     ```bash
     git add .
-    git commit -m "Initial commit"
+    git commit -m "Renamed to HiveForecast"
     git branch -M main
     git remote add origin <YOUR_GITHUB_REPO_URL>
     git push -u origin main
@@ -45,10 +45,10 @@ If you have the Vercel CLI installed (`npm i -g vercel`), you can deploy directl
     -   Set up and deploy? [Y]
     -   Which scope? [Your Name]
     -   Link to existing project? [N]
-    -   Project name? [standalone-forecast-app]
+    -   Project name? [hive-forecast]
     -   Directory? [./]
     -   Want to modify settings? [N]
 
 ## Verification
 
-After deployment, Vercel will provide a production URL (e.g., `https://standalone-forecast-app.vercel.app`). Visit this URL to verify the application is running.
+After deployment, Vercel will provide a production URL (e.g., `https://hive-forecast.vercel.app`). Visit this URL to verify the application is running.

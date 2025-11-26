@@ -192,7 +192,7 @@ function ForecastContent() {
                                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                                 </svg>
                             </div>
-                            <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">Bee Inspection Forecast</h1>
+                            <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">HiveForecast</h1>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 {
-  "name": "standalone-forecast-app",
+  "name": "hive-forecast",
   "version": "0.1.0",
   "private": true,
   "scripts": {
