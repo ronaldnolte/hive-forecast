@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 
+import Image from "next/image"
+
 export default function Home() {
   const [zipCode, setZipCode] = useState("")
   const router = useRouter()
@@ -20,10 +22,15 @@ export default function Home() {
     <div className="min-h-screen bg-background honeycomb-bg flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8 text-center">
         <div className="space-y-2">
-          <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg mb-6">
-            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
+          <div className="w-24 h-24 mx-auto flex items-center justify-center mb-6">
+            <Image
+              src="/logo.jpg"
+              alt="HiveForecast Logo"
+              width={96}
+              height={96}
+              className="rounded-2xl shadow-lg"
+              priority
+            />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">HiveForecast</h1>
           <p className="text-muted-foreground">

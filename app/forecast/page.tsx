@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, X } from 'lucide-react'
 import Link from "next/link"
+import Image from "next/image"
 import { getInspectionForecast, calculateWindowScore } from "@/lib/weather"
 
 interface ScoreDetails {
@@ -187,10 +188,14 @@ function ForecastContent() {
                 <div className="container mx-auto px-4 py-4 md:py-6 relative">
                     <div className="flex items-center justify-between gap-2 md:gap-3 mb-1">
                         <div className="flex items-center gap-2 md:gap-3">
-                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
-                                <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                                </svg>
+                            <div className="flex items-center justify-center">
+                                <Image
+                                    src="/logo.jpg"
+                                    alt="HiveForecast Logo"
+                                    width={48}
+                                    height={48}
+                                    className="rounded-xl shadow-md w-10 h-10 md:w-12 md:h-12"
+                                />
                             </div>
                             <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">HiveForecast</h1>
                         </div>
@@ -390,7 +395,7 @@ function ForecastContent() {
                     </div>
                 )}
             </main>
-        </div>
+        </div >
     )
 }
 
