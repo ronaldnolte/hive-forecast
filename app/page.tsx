@@ -32,7 +32,7 @@ export default function Home() {
               priority
             />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">HiveForecast</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Hive Forecast</h1>
           <p className="text-muted-foreground">
             Enter your zip code to see the best times to inspect your hives.
           </p>
