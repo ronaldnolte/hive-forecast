@@ -303,7 +303,7 @@ function ForecastContent() {
                                                             onClick={() => setSelectedPeriod(periodKey)}
                                                             className={`h-10 md:h-14 w-full flex items-center justify-center text-sm md:text-lg font-bold ${getScoreColor(score)} hover:opacity-80 transition-opacity cursor-pointer`}
                                                         >
-                                                            {score > 0 ? score : '—'}
+                                                            {score}
                                                         </button>
                                                     </td>
                                                 )
