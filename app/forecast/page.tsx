@@ -335,11 +335,22 @@ function ForecastContent() {
 
                                         return (
                                             <div className="space-y-4">
-                                                <div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {displayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            {displayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                                        </div>
+                                                        <div className="text-sm text-muted-foreground">{periodLabel}</div>
                                                     </div>
-                                                    <div className="text-sm text-muted-foreground">{periodLabel}</div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 gap-2 text-muted-foreground hover:text-primary"
+                                                        onClick={() => setIsExplanationOpen(true)}
+                                                    >
+                                                        <Info className="h-4 w-4" />
+                                                        <span className="text-xs">Scoring Info</span>
+                                                    </Button>
                                                 </div>
 
                                                 <div className={`text-center py-4 rounded-lg ${getScoreColor(details.score)}`}>
