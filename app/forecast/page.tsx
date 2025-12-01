@@ -7,6 +7,8 @@ import { ArrowLeft, X } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
 import { getInspectionForecast, calculateWindowScore } from "@/lib/weather"
+import { ScoringExplanationModal } from "@/components/ScoringExplanationModal"
+import { Info } from "lucide-react"
 
 interface ScoreDetails {
     score: number
@@ -26,6 +28,7 @@ interface ScoreDetails {
         humidity: number
         timeBonus: number
     }
+    failFactor?: string | null
 }
 
 function ForecastContent() {
@@ -36,6 +39,7 @@ function ForecastContent() {
     const [periodScores, setPeriodScores] = useState<Map<string, number>>(new Map())
     const [periodDetails, setPeriodDetails] = useState<Map<string, ScoreDetails>>(new Map())
     const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null)
+    const [isExplanationOpen, setIsExplanationOpen] = useState(false)
 
     useEffect(() => {
         const fetchForecast = async () => {
@@ -170,7 +174,8 @@ function ForecastContent() {
             humidity: Math.round(avgHumidity),
             issues,
             positives,
-            scoreBreakdown
+            scoreBreakdown,
+            failFactor: scoreDetails.failFactor
         }
     }
 
@@ -212,6 +217,15 @@ function ForecastContent() {
                         </Button>
                     </Link>
                     <h2 className="text-xl md:text-2xl font-semibold">Forecast for Zip: {zipCode}</h2>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto gap-2 text-muted-foreground hover:text-foreground"
+                        onClick={() => setIsExplanationOpen(true)}
+                    >
+                        <Info className="h-4 w-4" />
+                        <span className="hidden sm:inline">How is this calculated?</span>
+                    </Button>
                 </div>
 
                 {loading && (
@@ -336,27 +350,27 @@ function ForecastContent() {
                                                 {/* Score Breakdown Grid */}
                                                 {details.scoreBreakdown && (
                                                     <div className="grid grid-cols-3 gap-2 text-xs">
-                                                        <div className="bg-muted p-2 rounded">
+                                                        <div className={`bg-muted p-2 rounded ${details.failFactor === 'temperature' ? 'border-2 border-red-500' : ''}`}>
                                                             <div className="font-medium">Temperature</div>
                                                             <div className="text-muted-foreground text-[10px]">{details.temperature}°F</div>
                                                             <div className="text-lg font-bold">{details.scoreBreakdown.temperature}/30</div>
                                                         </div>
-                                                        <div className="bg-muted p-2 rounded">
+                                                        <div className={`bg-muted p-2 rounded ${details.failFactor === 'cloud' ? 'border-2 border-red-500' : ''}`}>
                                                             <div className="font-medium">Cloud</div>
                                                             <div className="text-muted-foreground text-[10px]">{details.cloudCover}%</div>
                                                             <div className="text-lg font-bold">{details.scoreBreakdown.cloud}/20</div>
                                                         </div>
-                                                        <div className="bg-muted p-2 rounded">
+                                                        <div className={`bg-muted p-2 rounded ${details.failFactor === 'wind' ? 'border-2 border-red-500' : ''}`}>
                                                             <div className="font-medium">Wind</div>
                                                             <div className="text-muted-foreground text-[10px]">{details.windSpeed}mph</div>
                                                             <div className="text-lg font-bold">{details.scoreBreakdown.wind}/20</div>
                                                         </div>
-                                                        <div className="bg-muted p-2 rounded">
+                                                        <div className={`bg-muted p-2 rounded ${details.failFactor === 'precipitation' ? 'border-2 border-red-500' : ''}`}>
                                                             <div className="font-medium">Precip</div>
                                                             <div className="text-muted-foreground text-[10px]">{details.precipitation}%</div>
                                                             <div className="text-lg font-bold">{details.scoreBreakdown.precipitation}/15</div>
                                                         </div>
-                                                        <div className="bg-muted p-2 rounded">
+                                                        <div className={`bg-muted p-2 rounded ${details.failFactor === 'humidity' ? 'border-2 border-red-500' : ''}`}>
                                                             <div className="font-medium">Humidity</div>
                                                             <div className="text-muted-foreground text-[10px]">{details.humidity}%</div>
                                                             <div className="text-lg font-bold">{details.scoreBreakdown.humidity}/5</div>
@@ -395,6 +409,11 @@ function ForecastContent() {
                     </div>
                 )}
             </main>
+
+            <ScoringExplanationModal
+                isOpen={isExplanationOpen}
+                onClose={() => setIsExplanationOpen(false)}
+            />
         </div >
     )
 }

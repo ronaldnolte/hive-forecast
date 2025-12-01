@@ -131,15 +131,7 @@ export function calculateWindowScore(hours: any[]): { score: number; details: an
         return hour >= 10 && hour < 16
     })
 
-    // ── Fail Conditions (Automatic Score: 0) ──
-    if (avgTemp < 55) return { score: 0, details: { fail: 'Too Cold (< 55°F)', avgTemp, maxWind, avgCloud, maxPop, avgHumidity } }
-    if (maxWind > 24) return { score: 0, details: { fail: 'High Wind (> 24 mph)', avgTemp, maxWind, avgCloud, maxPop, avgHumidity } }
-    if (maxPop > 49) return { score: 0, details: { fail: 'High Rain Chance (> 49%)', avgTemp, maxWind, avgCloud, maxPop, avgHumidity } }
-    if (maxRainRate > 0.5) return { score: 0, details: { fail: 'Heavy Rain (> 0.02")', avgTemp, maxWind, avgCloud, maxPop, avgHumidity } }
-    if (hasStorm) return { score: 0, details: { fail: 'Thunderstorm Detected', avgTemp, maxWind, avgCloud, maxPop, avgHumidity } }
-
     // ── Scoring Components (Max 100) ──
-    let score = 0
     const breakdown = {
         temperature: 0,
         cloud: 0,
@@ -186,8 +178,22 @@ export function calculateWindowScore(hours: any[]): { score: number; details: an
     if (allHoursInPrimeTime) { breakdown.timeBonus = 10; }
 
     // Calculate total score
-    score = breakdown.temperature + breakdown.cloud + breakdown.wind +
+    let score = breakdown.temperature + breakdown.cloud + breakdown.wind +
         breakdown.precipitation + breakdown.humidity + breakdown.timeBonus
+
+    // ── Fail Conditions (Automatic Score: 0) ──
+    let failFactor: string | null = null
+    let failReason: string | null = null
+
+    if (avgTemp < 55) { failFactor = 'temperature'; failReason = 'Too Cold (< 55°F)'; }
+    else if (maxWind > 24) { failFactor = 'wind'; failReason = 'High Wind (> 24 mph)'; }
+    else if (maxPop > 49) { failFactor = 'precipitation'; failReason = 'High Rain Chance (> 49%)'; }
+    else if (maxRainRate > 0.5) { failFactor = 'precipitation'; failReason = 'Heavy Rain (> 0.02")'; }
+    else if (hasStorm) { failFactor = 'precipitation'; failReason = 'Thunderstorm Detected'; }
+
+    if (failFactor) {
+        score = 0
+    }
 
     return {
         score: Math.min(100, score),
@@ -196,7 +202,9 @@ export function calculateWindowScore(hours: any[]): { score: number; details: an
             maxWind,
             avgCloud,
             maxPop,
-            avgHumidity
+            avgHumidity,
+            fail: failReason,
+            failFactor
         },
         scoreBreakdown: breakdown
     }
