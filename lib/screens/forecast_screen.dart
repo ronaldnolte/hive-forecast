@@ -56,12 +56,19 @@ class _ForecastScreenState extends State<ForecastScreen> {
                   child: Image.asset('assets/icon.png', height: 40, width: 40, fit: BoxFit.cover),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Hive Forecast', style: TextStyle(fontSize: 18)),
-                    Text(provider.locationName, style: const TextStyle(fontSize: 12)),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Hive Forecast', style: TextStyle(fontSize: 18)),
+                      Text(
+                        provider.locationName,
+                        style: const TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -88,26 +95,31 @@ class _ForecastScreenState extends State<ForecastScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Expanded(child: SizedBox()),
-                    const Text(
-                      "Tap score for details.",
-                      style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey, fontSize: 12),
+                    const Flexible(
+                      child: Text(
+                        "Tap score for details.",
+                        style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey, fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: InkWell(
-                          onTap: () => showDialog(context: context, builder: (_) => const ScoringInfoDialog()),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.help_outline, size: 16, color: Colors.grey.shade600),
-                              const SizedBox(width: 4),
-                              Text("How is this calculated?", style: TextStyle(color: Colors.grey.shade600, fontSize: 12, decoration: TextDecoration.underline)),
-                            ],
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () => showDialog(context: context, builder: (_) => const ScoringInfoDialog()),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.help_outline, size: 16, color: Colors.grey.shade600),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              "How is this calculated?",
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12, decoration: TextDecoration.underline),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ],
@@ -513,7 +525,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
               children: [
                   Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black54)),
                   const SizedBox(height: 4),
-                  Text(value, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                  Text(value, style: const TextStyle(fontSize: 12, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 1),
                   const SizedBox(height: 8),
                   Text('$score/$maxScore', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
               ],

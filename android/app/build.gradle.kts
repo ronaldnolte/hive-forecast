@@ -30,7 +30,6 @@ android {
         versionName = flutter.versionName
     }
 
-    /*
     signingConfigs {
         create("release") {
             storeFile = file("upload-keystore.jks")
@@ -39,12 +38,11 @@ android {
             keyPassword = "Key5723#"
         }
     }
-    */
 
     buildTypes {
         release {
-            // signingConfig = signingConfigs.getByName("release")
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            // signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

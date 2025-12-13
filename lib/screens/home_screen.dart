@@ -100,6 +100,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             filled: true,
                             fillColor: Colors.white.withOpacity(0.9), // Slightly transparent for bg
                             prefixIcon: const Icon(Icons.location_on),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () => _zipController.clear(),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 20),

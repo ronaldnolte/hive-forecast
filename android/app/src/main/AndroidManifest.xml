@@ -1,4 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Distinctly declare that telephony is not required for this app to function, 
+         allowing devices without SIM cards (like most tablets) to download it. -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
+    <!-- Explicitly declare support for all screen sizes to ensure Google Play 
+         distributes the app to tablets. -->
+    <supports-screens 
+        android:resizeable="true" 
+        android:smallScreens="true" 
+        android:normalScreens="true" 
+        android:largeScreens="true" 
+        android:xlargeScreens="true" 
+        android:anyDensity="true" />
     <application
         android:label="Hive Forecast"
         android:name="${applicationName}"
