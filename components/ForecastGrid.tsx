@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { WeatherService, InspectionWindow } from '@/services/WeatherService';
+import { ScoringHelpModal } from './ScoringHelpModal';
 
 interface ForecastGridProps {
     zipCode: string;
@@ -13,6 +14,7 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedWindow, setSelectedWindow] = useState<InspectionWindow | null>(null);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     useEffect(() => {
         const fetchForecast = async () => {
@@ -100,7 +102,7 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-[#FFFBF0] p-4">
+            <div className="flex flex-col items-center justify-center min-h-screen p-4">
                 <div className="text-center text-red-600 mb-4">
                     <div className="text-2xl mb-2">⚠️</div>
                     <div className="font-bold">Error: {error}</div>
@@ -115,16 +117,16 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
     }
 
     return (
-        <div className="min-h-screen bg-[#FFFBF0] p-4 pb-20">
+        <div className="min-h-screen p-4 pb-20">
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 pl-16">
                 <div>
                     <h2 className="text-xl font-bold text-[#8B4513]">Hive Forecast</h2>
                     <p className="text-xs text-gray-500">Zip: {zipCode}</p>
                 </div>
                 {onBack && (
                     <button onClick={onBack} className="text-xs bg-white border border-gray-300 px-3 py-1.5 rounded-full text-gray-600 shadow-sm">
-                        Change
+                        Change Zip Code
                     </button>
                 )}
             </div>
@@ -141,8 +143,16 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
                 </div>
 
                 {/* Help Link */}
-                <div className="text-center text-[10px] text-gray-500 italic">
-                    Tap a score for details
+                <div className="flex flex-col items-center gap-2">
+                    <div className="text-center text-[10px] text-gray-400 italic">
+                        Tap a score for details
+                    </div>
+                    <button
+                        onClick={() => setShowHelpModal(true)}
+                        className="text-[11px] text-amber-600 hover:text-amber-700 font-bold underline decoration-dotted underline-offset-4 transition-colors"
+                    >
+                        How are these scores calculated?
+                    </button>
                 </div>
             </div>
 
@@ -215,10 +225,16 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
                         </div>
 
                         {/* Score Banner */}
-                        <div className={`${getScoreColor(selectedWindow.score)} rounded-lg p-6 text-center mb-6 shadow-inner`}>
+                        <div className={`${getScoreColor(selectedWindow.score)} rounded-lg p-6 text-center mb-3 shadow-inner`}>
                             <div className="text-6xl font-black text-white">{Math.round(selectedWindow.score)}</div>
                             <div className="text-white/90 font-medium text-sm uppercase tracking-wide">Overall Score</div>
                         </div>
+                        <button
+                            onClick={() => { setSelectedWindow(null); setShowHelpModal(true); }}
+                            className="w-full text-center text-[11px] text-amber-600 hover:text-amber-700 font-medium underline decoration-dotted underline-offset-4 mb-4"
+                        >
+                            How are these scores calculated?
+                        </button>
 
                         {/* Stats Grid */}
                         <div className="grid grid-cols-2 gap-3 mb-6">
@@ -301,6 +317,12 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
                     </div>
                 </div>
             )}
+
+            {/* Scoring Help Modal */}
+            <ScoringHelpModal
+                isOpen={showHelpModal}
+                onClose={() => setShowHelpModal(false)}
+            />
         </div>
     );
 }
