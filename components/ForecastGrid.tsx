@@ -15,6 +15,7 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
     const [error, setError] = useState<string | null>(null);
     const [selectedWindow, setSelectedWindow] = useState<InspectionWindow | null>(null);
     const [showHelpModal, setShowHelpModal] = useState(false);
+    const [isTBH, setIsTBH] = useState(false);
 
     useEffect(() => {
         const fetchForecast = async () => {
@@ -28,7 +29,7 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
 
                 // Fetch weather
                 const data = await WeatherService.getWeatherForecast(lat, lng);
-                const forecast = WeatherService.calculateForecast(data);
+                const forecast = WeatherService.calculateForecast(data, isTBH);
                 setWindows(forecast);
             } catch (err: any) {
                 console.error('Forecast error:', err);
@@ -41,7 +42,7 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
         if (zipCode) {
             fetchForecast();
         }
-    }, [zipCode]);
+    }, [zipCode, isTBH]);
 
     // Group windows by date
     const gridData: Record<string, Record<number, InspectionWindow>> = {};
@@ -133,6 +134,20 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
 
             {/* Minimal Header: Legend + Help */}
             <div className="mb-4 space-y-3">
+                {/* TBH Mode Toggle */}
+                <div className="flex justify-center">
+                    <label className="flex items-center gap-2 cursor-pointer bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-shadow">
+                        <input
+                            type="checkbox"
+                            checked={isTBH}
+                            onChange={(e) => setIsTBH(e.target.checked)}
+                            className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Top Bar Hive Mode</span>
+                        <span className="text-[10px] text-gray-400">(heat penalty)</span>
+                    </label>
+                </div>
+
                 {/* Legend */}
                 <div className="flex flex-wrap gap-x-3 gap-y-2 justify-center text-[10px] sm:text-xs">
                     <LegendItem label="Excellent 85+" color="bg-green-700" />
