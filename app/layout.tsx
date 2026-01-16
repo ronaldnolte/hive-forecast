@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -54,7 +55,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {children}
+        <GoogleAnalytics gaId="G-H60164WT45" />
       </body>
     </html>
   );
 }
+

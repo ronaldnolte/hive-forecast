@@ -48,7 +48,7 @@ export function ZipCodeInput({ onZipSubmit }: ZipCodeInputProps) {
                                 setError('');
                             }}
                             placeholder="Zip Code (e.g. 80304)"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-center text-lg tracking-widest"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-center text-lg tracking-widest placeholder:text-gray-500"
                             inputMode="numeric"
                         />
                     </div>

@@ -122,7 +122,7 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
             <div className="flex justify-between items-center mb-6 pl-16">
                 <div>
                     <h2 className="text-xl font-bold text-[#8B4513]">Hive Forecast</h2>
-                    <p className="text-xs text-gray-500">Zip: {zipCode}</p>
+                    <p className="text-xs text-gray-700 font-medium">Zip: {zipCode}</p>
                 </div>
                 {onBack && (
                     <button onClick={onBack} className="text-xs bg-white border border-gray-300 px-3 py-1.5 rounded-full text-gray-600 shadow-sm">
