@@ -47,8 +47,8 @@ export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
                             <ScoreRule
                                 label="Temperature"
                                 max="40"
-                                description="Best above 75°F. Bees are more active and brood is less likely to chill."
-                                detail="75°F+ (40 pts), 70°F (37 pts), 65°F (33 pts), 60°F (27 pts), 57°F (18 pts), 55°F (8 pts)."
+                                description="Best above 75°F (24°C). Bees are more active and brood is less likely to chill."
+                                detail="75°F+/24°C+ (40 pts), 70°F/21°C (37 pts), 65°F/18°C (33 pts), 60°F/16°C (27 pts), 57°F/14°C (18 pts), 55°F/13°C (8 pts)."
                             />
                             <ScoreRule
                                 label="Cloud Cover"
@@ -60,7 +60,7 @@ export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
                                 label="Wind Speed"
                                 max="20"
                                 description="High winds make bees defensive and can chill the brood."
-                                detail="<5mph (20 pts), 10mph (18 pts), 15mph (12 pts), 20mph (6 pts), 24mph (2 pts)."
+                                detail="<5mph/8km/h (20 pts), 10mph/16km/h (18 pts), 15mph/24km/h (12 pts), 20mph/32km/h (6 pts), 24mph/39km/h (2 pts)."
                             />
                             <ScoreRule
                                 label="Precipitation"
@@ -90,8 +90,8 @@ export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
                         </p>
                         <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-red-700 list-disc ml-4">
                             <li>Score below 40</li>
-                            <li>Temperature &lt; 55°F</li>
-                            <li>Wind &gt; 24mph</li>
+                            <li>Temperature &lt; 55°F (13°C)</li>
+                            <li>Wind &gt; 24mph (39km/h)</li>
                             <li>Rain Chance &gt; 49%</li>
                             <li>Active Storms</li>
                             <li>Raining Now</li>
@@ -110,9 +110,9 @@ export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
                             Top Bar Hives are sensitive to heat — high temperatures can cause wax comb to slump or collapse.
                         </p>
                         <ul className="text-xs text-orange-700 space-y-1 list-disc ml-4">
-                            <li><strong>Heat Penalty:</strong> -10 pts for every 5°F above 80°F</li>
-                            <li><strong>Example:</strong> 85°F = -10 pts, 90°F = -20 pts</li>
-                            <li><strong>Hard Fail:</strong> Temperature &gt; 92°F triggers a fail</li>
+                            <li><strong>Heat Penalty:</strong> -10 pts for every 5°F (3°C) above 80°F (27°C)</li>
+                            <li><strong>Example:</strong> 85°F/29°C = -10 pts, 90°F/32°C = -20 pts</li>
+                            <li><strong>Hard Fail:</strong> Temperature &gt; 92°F (33°C) triggers a fail</li>
                         </ul>
                     </div>
                 </div>

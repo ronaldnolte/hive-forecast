@@ -8,6 +8,7 @@ interface ForecastGridProps {
     location: {
         type: 'zip' | 'coords';
         zip?: string;
+        countryCode?: string;
         lat?: number;
         lng?: number;
         elevation?: number;
@@ -16,12 +17,18 @@ interface ForecastGridProps {
 }
 
 export function ForecastGrid({ location, onBack }: ForecastGridProps) {
+    const [timezone, setTimezone] = useState<string>('UTC');
     const [windows, setWindows] = useState<InspectionWindow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedWindow, setSelectedWindow] = useState<InspectionWindow | null>(null);
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [isTBH, setIsTBH] = useState(false);
+
+    // Locale settings (US = Imperial/12h, Others = Metric/24h)
+    const isUS = !location.countryCode || location.countryCode.toLowerCase() === 'us';
+    const isMetric = !isUS;
+    const is24h = !isUS;
 
     useEffect(() => {
         const fetchForecast = async () => {
@@ -33,7 +40,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
                 if (location.type === 'zip' && location.zip) {
                     // Fetch coords from Zip
-                    const coords = await WeatherService.getCoordinates(location.zip);
+                    const coords = await WeatherService.getCoordinates(location.zip, location.countryCode);
                     lat = coords.lat;
                     lng = coords.lng;
                 } else if (location.type === 'coords' && location.lat !== undefined && location.lng !== undefined) {
@@ -46,7 +53,14 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
                 // Fetch weather
                 const data = await WeatherService.getWeatherForecast(lat, lng, location.elevation);
-                const forecast = WeatherService.calculateForecast(data, isTBH);
+
+                // Store timezone from API (e.g., "America/New_York")
+                if (data.timezone) {
+                    setTimezone(data.timezone);
+                }
+
+                // Pass isMetric preference to calculation
+                const forecast = WeatherService.calculateForecast(data, isTBH, isMetric);
                 setWindows(forecast);
             } catch (err: any) {
                 console.error('Forecast error:', err);
@@ -57,16 +71,11 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
         };
 
         fetchForecast();
-    }, [location, isTBH]);
+    }, [location, isTBH, isMetric]);
 
     // Group windows by date
     const gridData: Record<string, Record<number, InspectionWindow>> = {};
     const uniqueDates = new Set<string>();
-
-    // Get today's date at start of day (local time)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayValue = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
 
     windows.forEach(w => {
         const windowDateString = w.displayDate;
@@ -77,11 +86,11 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
     const sortedDates = Array.from(uniqueDates).sort();
 
-    // Group only today onwards
+    // Group only today onwards (relative to Location's Timezone)
     const now = new Date();
-    // Use local-ish string YYYY-MM-DD from the browser for "starting date"
-    const browserToday = now.toLocaleDateString('en-CA'); // YYYY-MM-DD
-    const filteredDates = sortedDates.filter(dateStr => dateStr >= browserToday);
+    // Get "YYYY-MM-DD" string for the location's timezone
+    const locationToday = now.toLocaleDateString('en-CA', { timeZone: timezone });
+    const filteredDates = sortedDates.filter(dateStr => dateStr >= locationToday);
 
     const timeSlots = [6, 8, 10, 12, 14, 16];
 
@@ -94,6 +103,11 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     };
 
     const formatTimeSlot = (hour: number) => {
+        if (is24h) {
+            // 24h format: "06:00", "14:00" etc.
+            return `${hour.toString().padStart(2, '0')}:00`;
+        }
+        // 12h format
         const slots: Record<number, string> = {
             6: '6-8am',
             8: '8-10am',
@@ -103,6 +117,23 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
             16: '4-6pm'
         };
         return slots[hour] || `${hour}:00`;
+    };
+
+    // Helper to format temp
+    const formatTemp = (tempF: number) => {
+        if (isMetric) {
+            const tempC = (tempF - 32) * 5 / 9;
+            return `${Math.round(tempC)}°C`;
+        }
+        return `${Math.round(tempF)}°F`;
+    };
+
+    // Helper to format speed
+    const formatSpeed = (mph: number) => {
+        if (isMetric) {
+            return `${Math.round(mph * 1.60934)}km/h`;
+        }
+        return `${Math.round(mph)}mph`;
     };
 
     if (loading) {
@@ -274,7 +305,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                         <div className="grid grid-cols-2 gap-3 mb-6">
                             <StatCard
                                 label="Temperature"
-                                value={`${Math.round(selectedWindow.tempF)}°F`}
+                                value={formatTemp(selectedWindow.tempF)}
                                 score={selectedWindow.scoreBreakdown['Temperature']}
                                 maxScore={40}
                             />
@@ -286,7 +317,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                             />
                             <StatCard
                                 label="Wind Speed"
-                                value={`${Math.round(selectedWindow.windMph)}mph`}
+                                value={formatSpeed(selectedWindow.windMph)}
                                 score={selectedWindow.scoreBreakdown['Wind Speed']}
                                 maxScore={20}
                             />
@@ -324,10 +355,10 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                             {/* Good Conditions */}
                             {(() => {
                                 const good = [];
-                                if (selectedWindow.windMph <= 10) good.push(`Light winds (${Math.round(selectedWindow.windMph)}mph)`);
+                                if (selectedWindow.windMph <= 10) good.push(`Light winds (${formatSpeed(selectedWindow.windMph)})`);
                                 if (selectedWindow.cloudCover <= 20) good.push(`Sunny (${Math.round(selectedWindow.cloudCover)}% clouds)`);
                                 if (selectedWindow.precipProb === 0) good.push("No rain expected");
-                                if (selectedWindow.tempF >= 60 && selectedWindow.tempF <= 90) good.push(`Good temperature (${Math.round(selectedWindow.tempF)}°F)`);
+                                if (selectedWindow.tempF >= 60 && selectedWindow.tempF <= 90) good.push(`Good temperature (${formatTemp(selectedWindow.tempF)})`);
                                 if (selectedWindow.humidity >= 30 && selectedWindow.humidity <= 70) good.push("Ideal humidity");
 
                                 if (good.length > 0) {

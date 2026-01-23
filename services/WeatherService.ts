@@ -15,14 +15,30 @@ export interface InspectionWindow {
 }
 
 export class WeatherService {
-    private static ZIP_API_URL = 'https://api.zippopotam.us/us/';
     private static WEATHER_API_URL = 'https://api.open-meteo.com/v1/forecast';
 
     /**
      * Get logic coordinates from Zip Code
      */
-    static async getCoordinates(zip: string): Promise<{ lat: number; lng: number }> {
-        const response = await fetch(`${this.ZIP_API_URL}${zip}`);
+    static async getCoordinates(zip: string, country: string = 'us'): Promise<{ lat: number; lng: number }> {
+        // Zippopotam requires lowercase country codes
+        const countryCode = country.toLowerCase();
+
+        let searchZip = zip;
+
+        // Normalize postal codes for Zippopotam (it supports outward codes for some countries)
+        if (countryCode === 'gb') {
+            // UK: Use outward code (first part before space) e.g., "SW1A 1AA" -> "SW1A"
+            searchZip = zip.split(' ')[0].trim();
+        } else if (countryCode === 'ca') {
+            // Canada: Use FSA (first 3 chars) e.g., "K1A 0B1" -> "K1A"
+            searchZip = zip.substring(0, 3);
+        } else if (countryCode === 'nl') {
+            // Netherlands: Use numeric part (first 4 chars) e.g., "1012 JS" -> "1012"
+            searchZip = zip.substring(0, 4);
+        }
+
+        const response = await fetch(`https://api.zippopotam.us/${countryCode}/${searchZip}`);
         if (response.ok) {
             const data = await response.json() as any;
             const place = data.places[0];
@@ -31,7 +47,7 @@ export class WeatherService {
                 lng: parseFloat(place.longitude),
             };
         } else {
-            throw new Error('Invalid ZIP code');
+            throw new Error(`Invalid Postal Code for ${country.toUpperCase()}`);
         }
     }
 
@@ -55,7 +71,7 @@ export class WeatherService {
     /**
      * Calculate 2-hour inspection windows for beekeeping
      */
-    static calculateForecast(weatherData: any, isTBH: boolean = false): InspectionWindow[] {
+    static calculateForecast(weatherData: any, isTBH: boolean = false, isMetric: boolean = false): InspectionWindow[] {
         const windows: InspectionWindow[] = [];
         const hourly = weatherData.hourly;
 
@@ -123,16 +139,25 @@ export class WeatherService {
                     const hasStorm = segmentCodes.some(c => [95, 96, 99].includes(c));
 
                     const issues: string[] = [];
-                    // User requested change: use average temp for warning to match display
-                    if (avgTemp < 55) issues.push("Too Cold (< 55°F)");
-                    if (maxWind > 24) issues.push("Too Windy (> 24mph)");
+
+                    // Localization Helpers
+                    const tempStr = (t: number) => isMetric ? `${Math.round((t - 32) * 5 / 9)}°C` : `${Math.round(t)}°F`;
+                    // Thresholds are kept in F/mph for internal consistency
+
+                    if (avgTemp < 55) issues.push(`Too Cold (< ${tempStr(55)})`);
+
+                    // Wind Warning
+                    if (maxWind > 24) {
+                        const speedStr = isMetric ? `${Math.round(24 * 1.60934)}km/h` : `24mph`;
+                        issues.push(`Too Windy (> ${speedStr})`);
+                    }
 
                     if (maxPrecipProb > 49) issues.push("Rain Likely (> 49%)"); // FIXED: Was checking maxPrecipProb but variable was undefined in copied code
                     if (maxPrecipRate > 0.02) issues.push("Raining");
                     if (hasStorm) issues.push("Stormy Weather");
 
                     // TBH-specific: High heat issue
-                    if (isTBH && avgTemp > 92) issues.push("Temperature > 92°F (comb slump risk)");
+                    if (isTBH && avgTemp > 92) issues.push(`Temperature > ${tempStr(92)} (comb slump risk)`);
 
                     let totalScore = 0;
                     const breakdown: Record<string, number> = {};

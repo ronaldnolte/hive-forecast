@@ -4,9 +4,23 @@ import { useState } from 'react';
 import { CoordinatesInput } from './CoordinatesInput';
 
 export interface LocationInputProps {
-    onLocationSubmit: (location: { type: 'zip' | 'coords'; zip?: string; lat?: number; lng?: number; elevation?: number; remember: boolean }) => void;
-    initialValues?: { type: 'zip' | 'coords'; zip?: string; lat?: number; lng?: number; elevation?: number; remember?: boolean };
+    onLocationSubmit: (location: { type: 'zip' | 'coords'; zip?: string; countryCode?: string; lat?: number; lng?: number; elevation?: number; remember: boolean }) => void;
+    initialValues?: { type: 'zip' | 'coords'; zip?: string; countryCode?: string; lat?: number; lng?: number; elevation?: number; remember?: boolean };
 }
+
+const COUNTRIES = [
+    { code: 'us', name: 'United States', flag: '🇺🇸', regex: /^\d{5}$/, placeholder: 'Zip Code (e.g. 80304)' },
+    { code: 'gb', name: 'United Kingdom', flag: '🇬🇧', regex: /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i, placeholder: 'Postcode (e.g. SW1A 1AA)' },
+    { code: 'be', name: 'Belgium', flag: '🇧🇪', regex: /^\d{4}$/, placeholder: 'Code Postal (e.g. 1000)' },
+    { code: 'de', name: 'Germany', flag: '🇩🇪', regex: /^\d{5}$/, placeholder: 'PLZ (e.g. 10115)' },
+    { code: 'dk', name: 'Denmark', flag: '🇩🇰', regex: /^\d{4}$/, placeholder: 'Postnummer (e.g. 1050)' },
+    { code: 'fr', name: 'France', flag: '🇫🇷', regex: /^\d{5}$/, placeholder: 'Code Postal (e.g. 75001)' },
+    { code: 'es', name: 'Spain', flag: '🇪🇸', regex: /^\d{5}$/, placeholder: 'Código Postal (e.g. 28001)' },
+    { code: 'it', name: 'Italy', flag: '🇮🇹', regex: /^\d{5}$/, placeholder: 'CAP (e.g. 00100)' },
+    { code: 'nl', name: 'Netherlands', flag: '🇳🇱', regex: /^\d{4}\s?[A-Z]{2}$/i, placeholder: 'Postcode (e.g. 1012 JS)' },
+    { code: 'au', name: 'Australia', flag: '🇦🇺', regex: /^\d{4}$/, placeholder: 'Postcode (e.g. 2000)' },
+    { code: 'ca', name: 'Canada', flag: '🇨🇦', regex: /^[A-Z]\d[A-Z] ?\d[A-Z]\d$/i, placeholder: 'Postal Code (e.g. K1A 0B1)' },
+];
 
 export function LocationInput({ onLocationSubmit, initialValues }: LocationInputProps) {
     const [activeTab, setActiveTab] = useState<'zip' | 'coords'>(initialValues?.type === 'coords' ? 'coords' : 'zip');
@@ -14,16 +28,20 @@ export function LocationInput({ onLocationSubmit, initialValues }: LocationInput
 
     // Zip Input State
     const [zip, setZip] = useState(initialValues?.zip || '');
+    const [countryCode, setCountryCode] = useState(initialValues?.countryCode || 'us');
     const [zipError, setZipError] = useState('');
+
+    const currentCountry = COUNTRIES.find(c => c.code === countryCode) || COUNTRIES[0];
 
     const handleZipSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!/^\d{5}$/.test(zip)) {
-            setZipError('Please enter a valid 5-digit US Zip Code');
+
+        if (!currentCountry.regex.test(zip)) {
+            setZipError(`Invalid format for ${currentCountry.name}`);
             return;
         }
         setZipError('');
-        onLocationSubmit({ type: 'zip', zip, remember });
+        onLocationSubmit({ type: 'zip', zip, countryCode, remember });
     };
 
     const handleCoordsSubmit = (lat: number, lng: number, elevation?: number) => {
@@ -51,7 +69,7 @@ export function LocationInput({ onLocationSubmit, initialValues }: LocationInput
                             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                             }`}
                     >
-                        Zip Code
+                        Postal Code
                     </button>
                     <button
                         onClick={() => setActiveTab('coords')}
@@ -68,20 +86,44 @@ export function LocationInput({ onLocationSubmit, initialValues }: LocationInput
                 <div className="p-8 pt-6 pb-4">
                     {activeTab === 'zip' ? (
                         <form onSubmit={handleZipSubmit} className="space-y-4">
+                            {/* Country Selector */}
                             <div>
-                                <label htmlFor="zip" className="sr-only">Zip Code</label>
+                                <label htmlFor="country" className="sr-only">Country</label>
+                                <div className="relative">
+                                    <select
+                                        id="country"
+                                        value={countryCode}
+                                        onChange={(e) => {
+                                            setCountryCode(e.target.value);
+                                            setZipError(''); // Clear error on change
+                                        }}
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all appearance-none bg-white text-gray-900 pr-10"
+                                    >
+                                        {COUNTRIES.map(c => (
+                                            <option key={c.code} value={c.code}>
+                                                {c.flag} {c.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                        ▼
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="zip" className="sr-only">Postal Code</label>
                                 <input
                                     type="text"
                                     id="zip"
                                     value={zip}
                                     onChange={(e) => {
-                                        const val = e.target.value.replace(/\D/g, '').slice(0, 5);
-                                        setZip(val);
+                                        setZip(e.target.value);
                                         setZipError('');
                                     }}
-                                    placeholder="Zip Code (e.g. 80304)"
+                                    placeholder={currentCountry.placeholder}
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-center text-lg tracking-widest text-gray-900 placeholder:text-gray-500"
-                                    inputMode="numeric"
+                                    autoComplete="postal-code"
                                 />
                             </div>
 
@@ -91,7 +133,7 @@ export function LocationInput({ onLocationSubmit, initialValues }: LocationInput
 
                             <button
                                 type="submit"
-                                disabled={zip.length !== 5}
+                                disabled={!zip}
                                 className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform active:scale-95"
                             >
                                 Get Forecast

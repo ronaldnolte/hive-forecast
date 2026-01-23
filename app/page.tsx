@@ -7,6 +7,7 @@ import { ForecastGrid } from '@/components/ForecastGrid';
 interface LocationState {
   type: 'zip' | 'coords';
   zip?: string;
+  countryCode?: string;
   lat?: number;
   lng?: number;
   elevation?: number;
