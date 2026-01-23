@@ -38,8 +38,12 @@ export class WeatherService {
     /**
      * Fetch raw weather data
      */
-    static async getWeatherForecast(lat: number, lng: number): Promise<any> {
-        const url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=14`;
+    static async getWeatherForecast(lat: number, lng: number, elevation?: number): Promise<any> {
+        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=14`;
+
+        if (elevation !== undefined) {
+            url += `&elevation=${elevation}`;
+        }
         const response = await fetch(url);
         if (response.ok) {
             return response.json();
@@ -158,7 +162,7 @@ export class WeatherService {
                     else if (avgCloud <= 40) cloudScore = 17;
                     else if (avgCloud <= 60) cloudScore = 12;
                     else if (avgCloud <= 80) cloudScore = 6;
-                    else cloudScore = 2;
+                    else cloudScore = 6;
                     breakdown['Cloud Cover'] = cloudScore;
                     totalScore += cloudScore;
 

@@ -1,25 +1,53 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ZipCodeInput } from '@/components/ZipCodeInput';
+import { LocationInput } from '@/components/LocationInput';
 import { ForecastGrid } from '@/components/ForecastGrid';
 
+interface LocationState {
+  type: 'zip' | 'coords';
+  zip?: string;
+  lat?: number;
+  lng?: number;
+  elevation?: number;
+  remember?: boolean;
+}
+
 export default function Home() {
-  const [zipCode, setZipCode] = useState<string | null>(null);
+  const [location, setLocation] = useState<LocationState | null>(null);
+  const [view, setView] = useState<'input' | 'forecast'>('input');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Do not load from localStorage - always start fresh
+    // Try to load from localStorage
+    try {
+      const saved = localStorage.getItem('hive_forecast_location');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setLocation(parsed);
+        // setView('forecast'); // Disable auto-run
+      }
+    } catch (e) {
+      console.error('Failed to load location', e);
+    }
   }, []);
 
-  const handleZipSubmit = (zip: string) => {
-    setZipCode(zip);
-    // Do not save to localStorage
+  const handleLocationSubmit = (loc: LocationState) => {
+    setLocation(loc);
+    setView('forecast');
+
+    // Handle Persistence
+    if (loc.remember) {
+      localStorage.setItem('hive_forecast_location', JSON.stringify(loc));
+    } else {
+      localStorage.removeItem('hive_forecast_location');
+    }
   };
 
   const handleBack = () => {
-    setZipCode(null);
+    setView('input');
+    // We do NOT clear location here, so we can pass it back as initialValues
   };
 
   if (!mounted) return null;
@@ -37,10 +65,16 @@ export default function Home() {
         </a>
       </div>
 
-      {zipCode ? (
-        <ForecastGrid zipCode={zipCode} onBack={handleBack} />
+
+
+      {view === 'forecast' && location ? (
+        <ForecastGrid location={location} onBack={handleBack} />
       ) : (
-        <ZipCodeInput onZipSubmit={handleZipSubmit} />
+        <LocationInput
+          key={location ? 'loaded' : 'new'}
+          onLocationSubmit={handleLocationSubmit}
+          initialValues={location || undefined}
+        />
       )}
     </main>
   );
