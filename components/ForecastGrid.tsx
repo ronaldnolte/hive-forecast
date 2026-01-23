@@ -5,11 +5,17 @@ import { WeatherService, InspectionWindow } from '@/services/WeatherService';
 import { ScoringHelpModal } from './ScoringHelpModal';
 
 interface ForecastGridProps {
-    zipCode: string;
+    location: {
+        type: 'zip' | 'coords';
+        zip?: string;
+        lat?: number;
+        lng?: number;
+        elevation?: number;
+    };
     onBack?: () => void;
 }
 
-export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
+export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     const [windows, setWindows] = useState<InspectionWindow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,13 +28,24 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
             setLoading(true);
             setError(null);
             try {
-                // Fetch coords
-                const coords = await WeatherService.getCoordinates(zipCode);
-                const lat = coords.lat;
-                const lng = coords.lng;
+                let lat: number;
+                let lng: number;
+
+                if (location.type === 'zip' && location.zip) {
+                    // Fetch coords from Zip
+                    const coords = await WeatherService.getCoordinates(location.zip);
+                    lat = coords.lat;
+                    lng = coords.lng;
+                } else if (location.type === 'coords' && location.lat !== undefined && location.lng !== undefined) {
+                    // Use provided coords
+                    lat = location.lat;
+                    lng = location.lng;
+                } else {
+                    throw new Error('Invalid location data');
+                }
 
                 // Fetch weather
-                const data = await WeatherService.getWeatherForecast(lat, lng);
+                const data = await WeatherService.getWeatherForecast(lat, lng, location.elevation);
                 const forecast = WeatherService.calculateForecast(data, isTBH);
                 setWindows(forecast);
             } catch (err: any) {
@@ -39,10 +56,8 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
             }
         };
 
-        if (zipCode) {
-            fetchForecast();
-        }
-    }, [zipCode, isTBH]);
+        fetchForecast();
+    }, [location, isTBH]);
 
     // Group windows by date
     const gridData: Record<string, Record<number, InspectionWindow>> = {};
@@ -123,11 +138,15 @@ export function ForecastGrid({ zipCode, onBack }: ForecastGridProps) {
             <div className="flex justify-between items-center mb-6 pl-16">
                 <div>
                     <h2 className="text-xl font-bold text-[#8B4513]">Hive Forecast</h2>
-                    <p className="text-xs text-gray-700 font-medium">Zip: {zipCode}</p>
+                    <p className="text-xs text-gray-700 font-medium">
+                        {location.type === 'zip'
+                            ? `Zip: ${location.zip}`
+                            : `Loc: ${location.lat?.toFixed(2)}, ${location.lng?.toFixed(2)}`}
+                    </p>
                 </div>
                 {onBack && (
                     <button onClick={onBack} className="text-xs bg-white border border-gray-300 px-3 py-1.5 rounded-full text-gray-600 shadow-sm">
-                        Change Zip Code
+                        Change Location
                     </button>
                 )}
             </div>
