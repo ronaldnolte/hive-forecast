@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { CoordinatesInput } from './CoordinatesInput';
 
-interface LocationInputProps {
+export interface LocationInputProps {
     onLocationSubmit: (location: { type: 'zip' | 'coords'; zip?: string; lat?: number; lng?: number; elevation?: number; remember: boolean }) => void;
+    initialValues?: { type: 'zip' | 'coords'; zip?: string; lat?: number; lng?: number; elevation?: number; remember?: boolean };
 }
 
 export function LocationInput({ onLocationSubmit, initialValues }: LocationInputProps) {
