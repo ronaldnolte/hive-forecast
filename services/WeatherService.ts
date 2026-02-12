@@ -52,10 +52,30 @@ export class WeatherService {
     }
 
     /**
+     * Determine the best Open-Meteo model based on country code.
+     * GFS for Americas, ICON for Europe, ECMWF IFS for rest of world.
+     */
+    static getModelForCountry(countryCode?: string): string {
+        const code = (countryCode || 'us').toLowerCase();
+
+        // Americas → GFS (same model as NWS/AccuWeather)
+        const americas = ['us', 'ca', 'mx', 'br', 'ar', 'cl', 'co', 'pe', 've', 'ec', 'bo', 'py', 'uy', 'gf', 'sr', 'gy', 'bz', 'gt', 'hn', 'sv', 'ni', 'cr', 'pa', 'cu', 'jm', 'ht', 'do', 'pr', 'tt', 'bb', 'bs', 'ag', 'dm', 'gd', 'kn', 'lc', 'vc'];
+        if (americas.includes(code)) return 'gfs_seamless';
+
+        // Europe → ICON (German DWD model, best for Europe)
+        const europe = ['gb', 'de', 'fr', 'it', 'es', 'pt', 'nl', 'be', 'at', 'ch', 'pl', 'cz', 'sk', 'hu', 'ro', 'bg', 'hr', 'si', 'rs', 'ba', 'me', 'mk', 'al', 'gr', 'dk', 'no', 'se', 'fi', 'ee', 'lv', 'lt', 'ie', 'is', 'lu', 'mt', 'cy', 'ua', 'by', 'md'];
+        if (europe.includes(code)) return 'icon_seamless';
+
+        // Rest of world (Australia, Asia, Africa, etc.) → ECMWF IFS
+        return 'ecmwf_ifs025';
+    }
+
+    /**
      * Fetch raw weather data
      */
-    static async getWeatherForecast(lat: number, lng: number, elevation?: number): Promise<any> {
-        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=14`;
+    static async getWeatherForecast(lat: number, lng: number, elevation?: number, countryCode?: string): Promise<any> {
+        const model = this.getModelForCountry(countryCode);
+        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7&models=${model}`;
 
         if (elevation !== undefined) {
             url += `&elevation=${elevation}`;
@@ -69,7 +89,7 @@ export class WeatherService {
     }
 
     /**
-     * Calculate 2-hour inspection windows for beekeeping
+     * Calculate 1-hour inspection windows for beekeeping
      */
     static calculateForecast(weatherData: any, isTBH: boolean = false, isMetric: boolean = false): InspectionWindow[] {
         const windows: InspectionWindow[] = [];
@@ -87,14 +107,12 @@ export class WeatherService {
         // Group indices by Date (yyyy-MM-dd)
         const dayIndices: Record<string, number[]> = {};
         for (let i = 0; i < times.length; i++) {
-            // times[i] is "YYYY-MM-DDTHH:mm"
             const dayKey = times[i].slice(0, 10);
-
             if (!dayIndices[dayKey]) dayIndices[dayKey] = [];
             dayIndices[dayKey].push(i);
         }
 
-        const targetStartHours = [6, 8, 10, 12, 14, 16];
+        const targetStartHours = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
         // Iterate over each day
         for (const dayKey in dayIndices) {
@@ -111,69 +129,52 @@ export class WeatherService {
                     }
                 }
 
-                // We need 2 hours of data
-                if (startIndex !== undefined && (startIndex + 1) < times.length) {
+                if (startIndex !== undefined) {
                     const i = startIndex;
 
-                    const segmentTemps = [temps[i], temps[i + 1]];
-                    const segmentWinds = [winds[i], winds[i + 1]];
-                    const segmentClouds = [clouds[i], clouds[i + 1]];
-                    const segmentPrecipProbs = [precipProbs[i], precipProbs[i + 1]];
-                    const segmentPrecips = [precips[i], precips[i + 1]];
-                    const segmentCodes = [codes[i], codes[i + 1]];
-                    const segmentHumidities = [humidities[i], humidities[i + 1]];
-
-                    // Averages
-                    const avgTemp = segmentTemps.reduce((a, b) => a + b, 0) / 2;
-                    const avgWind = segmentWinds.reduce((a, b) => a + b, 0) / 2;
-                    const avgCloud = segmentClouds.reduce((a, b) => a + b, 0) / 2;
-                    const avgPrecipProb = segmentPrecipProbs.reduce((a, b) => a + b, 0) / 2;
-                    const avgHumidity = segmentHumidities.reduce((a, b) => a + b, 0) / 2;
-
-                    // Kill Checks (Min/Max)
-                    const maxPrecipProb = Math.max(...segmentPrecipProbs);
-                    const maxPrecipRate = Math.max(...segmentPrecips);
-
-                    const maxWind = Math.max(...segmentWinds);
-
-                    const hasStorm = segmentCodes.some(c => [95, 96, 99].includes(c));
+                    // Use raw hourly values directly — no averaging
+                    const temp = temps[i];
+                    const wind = winds[i];
+                    const cloud = clouds[i];
+                    const precipProb = precipProbs[i];
+                    const precip = precips[i];
+                    const code = codes[i];
+                    const humidity = humidities[i];
 
                     const issues: string[] = [];
 
                     // Localization Helpers
                     const tempStr = (t: number) => isMetric ? `${Math.round((t - 32) * 5 / 9)}°C` : `${Math.round(t)}°F`;
-                    // Thresholds are kept in F/mph for internal consistency
 
-                    if (avgTemp < 55) issues.push(`Too Cold (< ${tempStr(55)})`);
+                    if (temp < 55) issues.push(`Too Cold (< ${tempStr(55)})`);
 
-                    // Wind Warning
-                    if (maxWind > 24) {
+                    if (wind > 24) {
                         const speedStr = isMetric ? `${Math.round(24 * 1.60934)}km/h` : `24mph`;
                         issues.push(`Too Windy (> ${speedStr})`);
                     }
 
-                    if (maxPrecipProb > 49) issues.push("Rain Likely (> 49%)"); // FIXED: Was checking maxPrecipProb but variable was undefined in copied code
-                    if (maxPrecipRate > 0.02) issues.push("Raining");
-                    if (hasStorm) issues.push("Stormy Weather");
+                    if (precipProb > 49) issues.push("Rain Likely (> 49%)");
+                    if (precip > 0.02) issues.push("Raining");
+                    if ([95, 96, 99].includes(code)) issues.push("Stormy Weather");
 
                     // TBH-specific: High heat issue
-                    if (isTBH && avgTemp > 92) issues.push(`Temperature > ${tempStr(92)} (comb slump risk)`);
+                    if (isTBH && temp > 92) issues.push(`Temperature > ${tempStr(92)} (comb slump risk)`);
 
                     let totalScore = 0;
                     const breakdown: Record<string, number> = {};
 
                     // 1. Temperature (Max 40)
                     let tempScore = 0;
-                    if (avgTemp >= 75) tempScore = 40;
-                    else if (avgTemp >= 70) tempScore = 37;
-                    else if (avgTemp >= 65) tempScore = 33;
-                    else if (avgTemp >= 60) tempScore = 27;
-                    else if (avgTemp >= 57) tempScore = 18;
-                    else if (avgTemp >= 55) tempScore = 8;
+                    if (temp >= 75) tempScore = 40;
+                    else if (temp >= 70) tempScore = 37;
+                    else if (temp >= 65) tempScore = 33;
+                    else if (temp >= 60) tempScore = 27;
+                    else if (temp >= 57) tempScore = 18;
+                    else if (temp >= 55) tempScore = 8;
 
-                    // TBH-specific: High heat penalty (-10 pts per 5°F above 80°F)
-                    if (isTBH && avgTemp > 80) {
-                        const degreesAbove80 = avgTemp - 80;
+                    // TBH-specific: High heat penalty
+                    if (isTBH && temp > 80) {
+                        const degreesAbove80 = temp - 80;
                         const penalty = Math.floor(degreesAbove80 / 5) * 10;
                         tempScore = Math.max(0, tempScore - penalty);
                     }
@@ -183,49 +184,49 @@ export class WeatherService {
 
                     // 2. Cloud Cover (Max 20)
                     let cloudScore = 0;
-                    if (avgCloud <= 20) cloudScore = 20;
-                    else if (avgCloud <= 40) cloudScore = 17;
-                    else if (avgCloud <= 60) cloudScore = 12;
-                    else if (avgCloud <= 80) cloudScore = 6;
+                    if (cloud <= 20) cloudScore = 20;
+                    else if (cloud <= 40) cloudScore = 17;
+                    else if (cloud <= 60) cloudScore = 12;
+                    else if (cloud <= 80) cloudScore = 6;
                     else cloudScore = 6;
                     breakdown['Cloud Cover'] = cloudScore;
                     totalScore += cloudScore;
 
                     // 3. Wind (Max 20)
                     let windScore = 0;
-                    if (avgWind <= 5) windScore = 20;
-                    else if (avgWind <= 10) windScore = 18;
-                    else if (avgWind <= 15) windScore = 12;
-                    else if (avgWind <= 20) windScore = 6;
-                    else if (avgWind <= 24) windScore = 2;
+                    if (wind <= 5) windScore = 20;
+                    else if (wind <= 10) windScore = 18;
+                    else if (wind <= 15) windScore = 12;
+                    else if (wind <= 20) windScore = 6;
+                    else if (wind <= 24) windScore = 2;
                     breakdown['Wind Speed'] = windScore;
                     totalScore += windScore;
 
                     // 4. Precipitation Probability (Max 15)
                     let precipScore = 0;
-                    if (avgPrecipProb === 0) precipScore = 15;
-                    else if (avgPrecipProb <= 10) precipScore = 12;
-                    else if (avgPrecipProb <= 20) precipScore = 8;
-                    else if (avgPrecipProb <= 35) precipScore = 4;
-                    else if (avgPrecipProb <= 49) precipScore = 1;
+                    if (precipProb === 0) precipScore = 15;
+                    else if (precipProb <= 10) precipScore = 12;
+                    else if (precipProb <= 20) precipScore = 8;
+                    else if (precipProb <= 35) precipScore = 4;
+                    else if (precipProb <= 49) precipScore = 1;
                     breakdown['Precipitation'] = precipScore;
                     totalScore += precipScore;
 
                     // 5. Humidity (Max 5)
-                    const humidityScore = (avgHumidity >= 30 && avgHumidity <= 70) ? 5 : 0;
+                    const humidityScore = (humidity >= 30 && humidity <= 70) ? 5 : 0;
                     breakdown['Humidity'] = humidityScore;
                     totalScore += humidityScore;
 
                     windows.push({
                         startTime: new Date(times[i]),
-                        endTime: new Date(new Date(times[i]).getTime() + 2 * 60 * 60 * 1000), // +2 hours
+                        endTime: new Date(new Date(times[i]).getTime() + 1 * 60 * 60 * 1000), // +1 hour
                         score: totalScore,
-                        tempF: avgTemp,
-                        windMph: avgWind,
-                        cloudCover: avgCloud,
-                        precipProb: avgPrecipProb,
-                        humidity: avgHumidity,
-                        condition: this.getConditionCode(segmentCodes[0]),
+                        tempF: temp,
+                        windMph: wind,
+                        cloudCover: cloud,
+                        precipProb: precipProb,
+                        humidity: humidity,
+                        condition: this.getConditionCode(code),
                         issues: issues,
                         scoreBreakdown: breakdown,
                         displayHour: startHour,

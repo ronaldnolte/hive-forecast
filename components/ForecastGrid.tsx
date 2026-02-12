@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { WeatherService, InspectionWindow } from '@/services/WeatherService';
 import { ScoringHelpModal } from './ScoringHelpModal';
+import { DiagnosticTable } from './DiagnosticTable';
 
 interface ForecastGridProps {
     location: {
@@ -24,6 +25,8 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     const [selectedWindow, setSelectedWindow] = useState<InspectionWindow | null>(null);
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [isTBH, setIsTBH] = useState(false);
+    const [resolvedCoords, setResolvedCoords] = useState<{ lat: number; lng: number } | null>(null);
+    const [diagWindow, setDiagWindow] = useState<InspectionWindow | null>(null);
 
     // Locale settings (US = Imperial/12h, Others = Metric/24h)
     const isUS = !location.countryCode || location.countryCode.toLowerCase() === 'us';
@@ -51,8 +54,10 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                     throw new Error('Invalid location data');
                 }
 
+                setResolvedCoords({ lat, lng });
+
                 // Fetch weather
-                const data = await WeatherService.getWeatherForecast(lat, lng, location.elevation);
+                const data = await WeatherService.getWeatherForecast(lat, lng, location.elevation, location.countryCode);
 
                 // Store timezone from API (e.g., "America/New_York")
                 if (data.timezone) {
@@ -92,7 +97,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     const locationToday = now.toLocaleDateString('en-CA', { timeZone: timezone });
     const filteredDates = sortedDates.filter(dateStr => dateStr >= locationToday);
 
-    const timeSlots = [6, 8, 10, 12, 14, 16];
+    const timeSlots = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
     const getScoreColor = (score: number) => {
         if (score >= 85) return 'bg-green-700';
@@ -104,19 +109,13 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
     const formatTimeSlot = (hour: number) => {
         if (is24h) {
-            // 24h format: "06:00", "14:00" etc.
             return `${hour.toString().padStart(2, '0')}:00`;
         }
-        // 12h format
-        const slots: Record<number, string> = {
-            6: '6-8am',
-            8: '8-10am',
-            10: '10am-12pm',
-            12: '12-2pm',
-            14: '2-4pm',
-            16: '4-6pm'
-        };
-        return slots[hour] || `${hour}:00`;
+        // 12h format — single hour labels
+        if (hour === 0 || hour === 24) return '12am';
+        if (hour === 12) return '12pm';
+        if (hour < 12) return `${hour}am`;
+        return `${hour - 12}pm`;
     };
 
     // Helper to format temp
@@ -259,7 +258,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                             <td
                                                 key={dateStr}
                                                 className={`border border-gray-200 h-10 w-16 cursor-pointer hover:opacity-90 transition-opacity ${getScoreColor(window.score)}`}
-                                                onClick={() => setSelectedWindow(window)}
+                                                onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
                                             >
                                                 <div className={`flex items-center justify-center h-full font-bold text-sm ${textColor}`}>
                                                     {Math.round(window.score)}
@@ -276,112 +275,134 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
             {/* Detail Modal */}
             {selectedWindow && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm" onClick={() => setSelectedWindow(null)}>
-                    <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-xl font-bold text-[#8B4513]">Conditions</h3>
-                                <p className="text-sm text-gray-600">
-                                    {selectedWindow.startTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                                </p>
-                                <p className="text-sm font-medium text-amber-600">{formatTimeSlot(selectedWindow.startTime.getHours())}</p>
-                            </div>
-                            <button onClick={() => setSelectedWindow(null)} className="text-2xl text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">&times;</button>
-                        </div>
-
-                        {/* Score Banner */}
-                        <div className={`${getScoreColor(selectedWindow.score)} rounded-lg p-6 text-center mb-3 shadow-inner`}>
-                            <div className="text-6xl font-black text-white">{Math.round(selectedWindow.score)}</div>
-                            <div className="text-white/90 font-medium text-sm uppercase tracking-wide">Overall Score</div>
-                        </div>
-                        <button
-                            onClick={() => { setSelectedWindow(null); setShowHelpModal(true); }}
-                            className="w-full text-center text-[11px] text-amber-600 hover:text-amber-700 font-medium underline decoration-dotted underline-offset-4 mb-4"
-                        >
-                            How are these scores calculated?
-                        </button>
-
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-2 gap-3 mb-6">
-                            <StatCard
-                                label="Temperature"
-                                value={formatTemp(selectedWindow.tempF)}
-                                score={selectedWindow.scoreBreakdown['Temperature']}
-                                maxScore={40}
-                            />
-                            <StatCard
-                                label="Cloud Cover"
-                                value={`${Math.round(selectedWindow.cloudCover)}%`}
-                                score={selectedWindow.scoreBreakdown['Cloud Cover']}
-                                maxScore={20}
-                            />
-                            <StatCard
-                                label="Wind Speed"
-                                value={formatSpeed(selectedWindow.windMph)}
-                                score={selectedWindow.scoreBreakdown['Wind Speed']}
-                                maxScore={20}
-                            />
-                            <StatCard
-                                label="Precip Chance"
-                                value={`${Math.round(selectedWindow.precipProb)}%`}
-                                score={selectedWindow.scoreBreakdown['Precipitation']}
-                                maxScore={15}
-                            />
-                            {/* Humidity is minor, verify if we want it */}
-                            <StatCard
-                                label="Humidity"
-                                value={`${Math.round(selectedWindow.humidity)}%`}
-                                score={selectedWindow.scoreBreakdown['Humidity']}
-                                maxScore={5}
-                            />
-                        </div>
-
-                        <div className="space-y-4">
-                            {/* Issues */}
-                            {selectedWindow.issues.length > 0 && (
-                                <div className="bg-red-50 p-3 rounded-lg border border-red-100">
-                                    <h4 className="font-bold text-red-700 mb-1 text-sm">Issues detected:</h4>
-                                    <ul className="text-sm text-red-600 space-y-1 ml-1">
-                                        {selectedWindow.issues.map((issue, i) => (
-                                            <li key={i} className="flex items-start gap-2">
-                                                <span>•</span>
-                                                <span>{issue}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
+                <div className="fixed inset-0 bg-black/60 flex items-start justify-center p-4 z-50 backdrop-blur-sm overflow-y-auto" onClick={() => setSelectedWindow(null)}>
+                    <div className="flex flex-col lg:flex-row gap-4 items-start justify-center w-full max-w-5xl mt-8">
+                        {/* Conditions Modal */}
+                        <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 max-h-[85vh] overflow-y-auto shrink-0" onClick={e => e.stopPropagation()}>
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-xl font-bold text-[#8B4513]">Conditions</h3>
+                                    <p className="text-sm text-gray-600">
+                                        {selectedWindow.startTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                    </p>
+                                    <p className="text-sm font-medium text-amber-600">{formatTimeSlot(selectedWindow.startTime.getHours())}</p>
                                 </div>
-                            )}
+                                <button onClick={() => setSelectedWindow(null)} className="text-2xl text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">&times;</button>
+                            </div>
 
-                            {/* Good Conditions */}
-                            {(() => {
-                                const good = [];
-                                if (selectedWindow.windMph <= 10) good.push(`Light winds (${formatSpeed(selectedWindow.windMph)})`);
-                                if (selectedWindow.cloudCover <= 20) good.push(`Sunny (${Math.round(selectedWindow.cloudCover)}% clouds)`);
-                                if (selectedWindow.precipProb === 0) good.push("No rain expected");
-                                if (selectedWindow.tempF >= 60 && selectedWindow.tempF <= 90) good.push(`Good temperature (${formatTemp(selectedWindow.tempF)})`);
-                                if (selectedWindow.humidity >= 30 && selectedWindow.humidity <= 70) good.push("Ideal humidity");
+                            {/* Score Banner */}
+                            <div className={`${getScoreColor(selectedWindow.score)} rounded-lg p-6 text-center mb-3 shadow-inner`}>
+                                <div className="text-6xl font-black text-white">{Math.round(selectedWindow.score)}</div>
+                                <div className="text-white/90 font-medium text-sm uppercase tracking-wide">Overall Score</div>
+                            </div>
+                            <button
+                                onClick={() => { setSelectedWindow(null); setShowHelpModal(true); }}
+                                className="w-full text-center text-[11px] text-amber-600 hover:text-amber-700 font-medium underline decoration-dotted underline-offset-4 mb-4"
+                            >
+                                How are these scores calculated?
+                            </button>
 
-                                if (good.length > 0) {
-                                    return (
-                                        <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-                                            <h4 className="font-bold text-green-700 mb-1 text-sm">Good conditions:</h4>
-                                            <ul className="text-sm text-green-600 space-y-1 ml-1">
-                                                {good.map((item, i) => (
-                                                    <li key={i} className="flex items-start gap-2">
-                                                        <span>•</span>
-                                                        <span>{item}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })()}
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                <StatCard
+                                    label="Temperature"
+                                    value={formatTemp(selectedWindow.tempF)}
+                                    score={selectedWindow.scoreBreakdown['Temperature']}
+                                    maxScore={40}
+                                />
+                                <StatCard
+                                    label="Cloud Cover"
+                                    value={`${Math.round(selectedWindow.cloudCover)}%`}
+                                    score={selectedWindow.scoreBreakdown['Cloud Cover']}
+                                    maxScore={20}
+                                />
+                                <StatCard
+                                    label="Wind Speed"
+                                    value={formatSpeed(selectedWindow.windMph)}
+                                    score={selectedWindow.scoreBreakdown['Wind Speed']}
+                                    maxScore={20}
+                                />
+                                <StatCard
+                                    label="Precip Chance"
+                                    value={`${Math.round(selectedWindow.precipProb)}%`}
+                                    score={selectedWindow.scoreBreakdown['Precipitation']}
+                                    maxScore={15}
+                                />
+                                <StatCard
+                                    label="Humidity"
+                                    value={`${Math.round(selectedWindow.humidity)}%`}
+                                    score={selectedWindow.scoreBreakdown['Humidity']}
+                                    maxScore={5}
+                                />
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Issues */}
+                                {selectedWindow.issues.length > 0 && (
+                                    <div className="bg-red-50 p-3 rounded-lg border border-red-100">
+                                        <h4 className="font-bold text-red-700 mb-1 text-sm">Issues detected:</h4>
+                                        <ul className="text-sm text-red-600 space-y-1 ml-1">
+                                            {selectedWindow.issues.map((issue, i) => (
+                                                <li key={i} className="flex items-start gap-2">
+                                                    <span>•</span>
+                                                    <span>{issue}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Good Conditions */}
+                                {(() => {
+                                    const good = [];
+                                    if (selectedWindow.windMph <= 10) good.push(`Light winds (${formatSpeed(selectedWindow.windMph)})`);
+                                    if (selectedWindow.cloudCover <= 20) good.push(`Sunny (${Math.round(selectedWindow.cloudCover)}% clouds)`);
+                                    if (selectedWindow.precipProb === 0) good.push("No rain expected");
+                                    if (selectedWindow.tempF >= 60 && selectedWindow.tempF <= 90) good.push(`Good temperature (${formatTemp(selectedWindow.tempF)})`);
+                                    if (selectedWindow.humidity >= 30 && selectedWindow.humidity <= 70) good.push("Ideal humidity");
+
+                                    if (good.length > 0) {
+                                        return (
+                                            <div className="bg-green-50 p-3 rounded-lg border border-green-100">
+                                                <h4 className="font-bold text-green-700 mb-1 text-sm">Good conditions:</h4>
+                                                <ul className="text-sm text-green-600 space-y-1 ml-1">
+                                                    {good.map((item, i) => (
+                                                        <li key={i} className="flex items-start gap-2">
+                                                            <span>•</span>
+                                                            <span>{item}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
+                            </div>
                         </div>
+
+                        {/* Diagnostic Table — side by side */}
+                        {resolvedCoords && (() => {
+                            const targetDate = selectedWindow.displayDate;
+                            const targetHour = selectedWindow.displayHour;
+                            const resolvedAppWindow = windows.find(w => w.displayDate === targetDate && w.displayHour === targetHour) || null;
+                            return (
+                                <div className="hidden lg:block bg-white rounded-xl shadow-2xl w-full max-w-xl p-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                                    <DiagnosticTable
+                                        appWindow={resolvedAppWindow}
+                                        lat={resolvedCoords.lat}
+                                        lng={resolvedCoords.lng}
+                                        targetDate={targetDate}
+                                        targetHour={targetHour}
+                                        autoOpen
+                                    />
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
             )}
+
 
             {/* Scoring Help Modal */}
             <ScoringHelpModal
