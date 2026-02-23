@@ -69,8 +69,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* Header: Logo + Install Button */}
-      <div className="absolute top-4 left-4 right-4 z-50 flex justify-between items-start">
+      {/* Logo in upper left */}
+      <div className="absolute top-4 left-4 z-50">
         <a href="/">
           <img
             src="/icon-192.png"
@@ -78,10 +78,14 @@ export default function Home() {
             className="w-12 h-12 rounded-lg shadow-md hover:shadow-lg transition-shadow"
           />
         </a>
-        <PWAInstallButton />
       </div>
 
-
+      {/* Install button anchored above content */}
+      <div className="flex justify-center pt-4">
+        <div className="w-full max-w-md flex justify-end px-4">
+          <PWAInstallButton />
+        </div>
+      </div>
 
       {view === 'forecast' && location ? (
         <ForecastGrid location={location} onBack={handleBack} />
