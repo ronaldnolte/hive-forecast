@@ -409,6 +409,21 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                 isOpen={showHelpModal}
                 onClose={() => setShowHelpModal(false)}
             />
+
+            {/* Footnote */}
+            <div className="text-center mt-4 space-y-3">
+                <p className="text-[10px] text-gray-400 italic">
+                    White numerals = OK to inspect · Black numerals = Not recommended
+                </p>
+                <a
+                    href="https://app.beektools.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium hover:underline transition-colors"
+                >
+                    Full Beekeeping App →
+                </a>
+            </div>
         </div>
     );
 }

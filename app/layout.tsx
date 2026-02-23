@@ -14,12 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hive Forecast | Best Times for Beekeeping Inspections",
-  description: "Get accurate, 14-day weather forecasts specifically tailored for honey bee hive inspections based on your zip code.",
+  title: "Forecast | Best Times for Beekeeping Inspections",
+  description: "Get accurate, 7-day weather forecasts specifically tailored for honey bee hive inspections based on your location.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Hive Forecast",
+    title: "Forecast",
   },
   manifest: "/manifest.json",
   icons: {

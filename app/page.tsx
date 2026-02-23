@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { LocationInput } from '@/components/LocationInput';
 import { ForecastGrid } from '@/components/ForecastGrid';
+import PWAInstallButton from '@/components/PWAInstallButton';
 
 interface LocationState {
   type: 'zip' | 'coords';
@@ -21,6 +22,19 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((err) => {
+          console.error('Service Worker registration failed:', err);
+        });
+    }
+
     // Try to load from localStorage
     try {
       const saved = localStorage.getItem('hive_forecast_location');
@@ -55,8 +69,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* Logo in upper left */}
-      <div className="absolute top-4 left-4 z-50">
+      {/* Header: Logo + Install Button */}
+      <div className="absolute top-4 left-4 right-4 z-50 flex justify-between items-start">
         <a href="/">
           <img
             src="/icon-192.png"
@@ -64,6 +78,7 @@ export default function Home() {
             className="w-12 h-12 rounded-lg shadow-md hover:shadow-lg transition-shadow"
           />
         </a>
+        <PWAInstallButton />
       </div>
 
 
