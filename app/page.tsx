@@ -69,23 +69,27 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* Logo in upper left */}
-      <div className="absolute top-4 left-4 z-50">
-        <a href="/">
-          <img
-            src="/icon-192.png"
-            alt="Hive Forecast Logo"
-            className="w-12 h-12 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-          />
-        </a>
-      </div>
+      {/* Logo in upper left - Only visible on input screen */}
+      {view === 'input' && (
+        <div className="absolute top-4 left-4 z-50">
+          <a href="/">
+            <img
+              src="/icon-192.png"
+              alt="Hive Forecast Logo"
+              className="w-12 h-12 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+            />
+          </a>
+        </div>
+      )}
 
       {/* Install button anchored above content */}
-      <div className="flex justify-center pt-4">
-        <div className="w-full max-w-md flex justify-center px-4">
-          <PWAInstallButton />
+      {!location && (
+        <div className="flex justify-center pt-4">
+          <div className="w-full max-w-md flex justify-center px-4">
+            <PWAInstallButton />
+          </div>
         </div>
-      </div>
+      )}
 
       {view === 'forecast' && location ? (
         <ForecastGrid location={location} onBack={handleBack} />

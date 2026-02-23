@@ -164,19 +164,31 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
     return (
         <div className="min-h-screen p-4 pb-20">
-            {/* Header */}
-            <div className="max-w-3xl mx-auto">
-                <div className="flex justify-between items-center mb-6 pl-16">
-                    <div>
-                        <h2 className="text-xl font-bold text-[#8B4513]">Hive Forecast</h2>
-                        <p className="text-xs text-gray-700 font-medium">
+            {/* Unified Header */}
+            <div className="max-w-3xl mx-auto mb-8">
+                <div className="flex items-center gap-4 bg-white/50 p-4 rounded-2xl backdrop-blur-sm shadow-sm border border-white/20">
+                    <a href="/" className="shrink-0">
+                        <img
+                            src="/icon-192.png"
+                            alt="Logo"
+                            className="w-12 h-12 rounded-xl shadow-sm"
+                        />
+                    </a>
+
+                    <div className="flex-1">
+                        <h2 className="text-xl font-bold text-[#8B4513] leading-tight">Hive Forecast</h2>
+                        <p className="text-xs text-gray-600 font-medium">
                             {location.type === 'zip'
                                 ? `Zip: ${location.zip}`
                                 : `Loc: ${location.lat?.toFixed(2)}, ${location.lng?.toFixed(2)}`}
                         </p>
                     </div>
+
                     {onBack && (
-                        <button onClick={onBack} className="text-xs bg-white border border-gray-300 px-3 py-1.5 rounded-full text-gray-600 shadow-sm">
+                        <button
+                            onClick={onBack}
+                            className="shrink-0 text-xs font-semibold bg-white border border-amber-200 px-4 py-2 rounded-xl text-amber-800 shadow-sm hover:bg-amber-50 hover:border-amber-300 transition-all active:scale-95"
+                        >
                             Change Location
                         </button>
                     )}
