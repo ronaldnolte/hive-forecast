@@ -82,7 +82,7 @@ export default function Home() {
 
       {/* Install button anchored above content */}
       <div className="flex justify-center pt-4">
-        <div className="w-full max-w-md flex justify-end px-4">
+        <div className="w-full max-w-md flex justify-center px-4">
           <PWAInstallButton />
         </div>
       </div>

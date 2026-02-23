@@ -61,7 +61,7 @@ export default function PWAInstallButton() {
             <div className="flex items-center gap-1.5">
                 <button
                     onClick={handleInstallClick}
-                    className="flex items-center gap-1.5 bg-[#8B4513] hover:bg-[#6B3410] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md hover:shadow-lg transition-all transform active:scale-95"
+                    className="flex items-center gap-1.5 border-2 border-amber-500 text-amber-700 hover:bg-amber-500 hover:text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all transform active:scale-95"
                     title="Install Forecast app to your home screen"
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
