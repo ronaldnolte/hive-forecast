@@ -381,8 +381,8 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                             </div>
                         </div>
 
-                        {/* Diagnostic Table — side by side */}
-                        {resolvedCoords && (() => {
+                        {/* Diagnostic Table — only for dev testing (zip 87121) */}
+                        {resolvedCoords && location.zip === '87121' && (() => {
                             const targetDate = selectedWindow.displayDate;
                             const targetHour = selectedWindow.displayHour;
                             const resolvedAppWindow = windows.find(w => w.displayDate === targetDate && w.displayHour === targetHour) || null;
