@@ -1,6 +1,6 @@
 {
-    "name": "Forecast",
-    "short_name": "Forecast",
+    "name": "Beektools Forecast",
+    "short_name": "Beektools",
     "description": "Beekeeping weather inspection forecast",
     "start_url": "/",
     "display": "standalone",

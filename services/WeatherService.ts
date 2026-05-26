@@ -237,8 +237,8 @@ export class WeatherService {
                     const issuesV2: string[] = [];
 
                     // Step 1: Check Fail-Safes (Short-Circuit Logic)
-                    if (temp < 57) {
-                        issuesV2.push(`Too Cold (< 57°F / 14°C)`);
+                    if (temp < 55) {
+                        issuesV2.push(`Too Cold (< 55°F / 13°C)`);
                     }
                     
                     const hasRainV2 = precip > 0.02 || [95, 96, 99].includes(code) || (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || precipProb >= 50;
@@ -256,31 +256,28 @@ export class WeatherService {
                         issuesV2.push(`Pressure Dropping Rapidly (Approaching Storm)`);
                     }
 
-                    // Step 2: Points calculations (If fail-safes pass)
+                    // Step 2: Points calculations (Unconditional)
                     let tempPts = 0;
                     let timePts = 0;
                     let skyPts = 0;
                     let windPts = 0;
 
-                    if (issuesV2.length === 0) {
-                        // Temperature
-                        if (temp >= 68 && temp <= 85) tempPts = 3;
-                        else if ((temp >= 58 && temp <= 67) || (temp >= 86 && temp <= 92)) tempPts = 1;
-                        
-                        // Time of Day
-                        if (startHour >= 10 && startHour <= 13) timePts = 2; // 10am-2pm (10, 11, 12, 13 slots)
-                        else if ((startHour >= 8 && startHour <= 9) || (startHour >= 14 && startHour <= 17)) timePts = 1; // 8:30am-9:59am, 2:01pm-5pm
-                        
-                        // Sky Condition
-                        if (cloud <= 30) skyPts = 2; // Clear/Sunny
-                        else skyPts = 0; // Overcast/Cloudy
-                        
-                        // Wind
-                        if (wind < 10) windPts = 2;
-                        else if (wind >= 10 && wind <= 15) windPts = 1;
-                    }
+                    // Temperature (Optimal: 65-85 -> +3; Sub-optimal: 55-64 or 86-92 -> +1)
+                    if (temp >= 65 && temp <= 85) tempPts = 3;
+                    else if ((temp >= 55 && temp < 65) || (temp > 85 && temp <= 92)) tempPts = 1;
+                    
+                    // Time of Day (Optimal: 9am-2pm [9-13] -> +2; Sub-optimal: 8am or 2pm-5pm [8, 14-17] -> +1)
+                    if (startHour >= 9 && startHour <= 13) timePts = 2;
+                    else if (startHour === 8 || (startHour >= 14 && startHour <= 17)) timePts = 1;
+                    
+                    // Sky Condition (Sunny: <= 30% clouds -> +2)
+                    if (cloud <= 30) skyPts = 2;
+                    
+                    // Wind (Optimal: <10mph -> +2; Sub-optimal: 10-15mph -> +1)
+                    if (wind < 10) windPts = 2;
+                    else if (wind >= 10 && wind <= 15) windPts = 1;
 
-                    const scoreV2 = issuesV2.length > 0 ? 0 : (tempPts + timePts + skyPts + windPts);
+                    const scoreV2 = tempPts + timePts + skyPts + windPts;
                     
                     // Step 3: Determine Classification
                     let classificationV2: 'Optimal' | 'Viable' | 'Inadvisable' = 'Inadvisable';

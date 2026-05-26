@@ -354,7 +354,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                                     onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
                                                 >
                                                     <div className="flex items-center justify-center h-full font-black text-sm text-white">
-                                                        {window.issuesV2.length > 0 ? 'FAIL' : window.scoreV2}
+                                                        {window.scoreV2}
                                                     </div>
                                                 </td>
                                             );
@@ -460,7 +460,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
                                 {selectedWindow.issuesV2.length > 0 ? (
                                     <div className="bg-red-50 p-3 rounded-xl border border-red-100 text-xs">
-                                        <h5 className="font-bold text-red-700 mb-1">V2 Tripped Fail-Safes (Short-Circuit):</h5>
+                                        <h5 className="font-bold text-red-700 mb-1">V2 Tripped Fail-Safes:</h5>
                                         <ul className="text-red-600 space-y-0.5 list-disc pl-4 font-bold">
                                             {selectedWindow.issuesV2.map((issue, idx) => <li key={idx}>{issue}</li>)}
                                         </ul>

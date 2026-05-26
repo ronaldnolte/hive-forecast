@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 interface ScoringHelpModalProps {
     isOpen: boolean;
@@ -8,6 +8,8 @@ interface ScoringHelpModalProps {
 }
 
 export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
+    const [activeTab, setActiveTab] = useState<'v1' | 'v2'>('v1');
+
     if (!isOpen) return null;
 
     return (
@@ -32,89 +34,167 @@ export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
                     </button>
                 </div>
 
+                {/* Tabs switcher */}
+                <div className="flex border-b border-amber-100 bg-amber-50/10">
+                    <button
+                        onClick={() => setActiveTab('v1')}
+                        className={`flex-1 py-3 text-center text-xs font-black tracking-wider uppercase border-b-2 transition-all ${activeTab === 'v1' ? 'border-amber-600 text-amber-800 bg-amber-50/20' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                    >
+                        Grid 1 (0-100)
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('v2')}
+                        className={`flex-1 py-3 text-center text-xs font-black tracking-wider uppercase border-b-2 transition-all ${activeTab === 'v2' ? 'border-amber-600 text-amber-800 bg-amber-50/20' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                    >
+                        Grid 2 (0-9)
+                    </button>
+                </div>
+
                 {/* Body */}
-                <div className="p-6 overflow-y-auto space-y-6 text-sm">
-                    {/* Intro */}
-                    <p className="text-gray-600 leading-relaxed">
-                        The inspection suitability score (0-100) is a weighted calculation based on 5 key weather factors. High scores indicate ideal conditions for opening the hive with minimal stress to the colony.
-                    </p>
+                <div className="p-6 overflow-y-auto space-y-6 text-sm flex-1">
+                    {activeTab === 'v1' ? (
+                        <>
+                            {/* V1 Intro */}
+                            <p className="text-gray-600 leading-relaxed">
+                                The inspection suitability score (0-100) is a weighted calculation based on 5 key weather factors. High scores indicate ideal conditions for opening the hive with minimal stress to the colony.
+                            </p>
 
-                    {/* Point Breakdown */}
-                    <div className="space-y-4">
-                        <h4 className="font-bold text-[#4A3C28] uppercase tracking-wider text-xs">Point System</h4>
+                            {/* V1 Point Breakdown */}
+                            <div className="space-y-4">
+                                <h4 className="font-bold text-[#4A3C28] uppercase tracking-wider text-xs">Point System</h4>
 
-                        <div className="grid gap-3">
-                            <ScoreRule
-                                label="Temperature"
-                                max="40"
-                                description="Best above 75°F (24°C). Bees are more active and brood is less likely to chill."
-                                detail="75°F+/24°C+ (40 pts), 70°F/21°C (37 pts), 65°F/18°C (33 pts), 60°F/16°C (27 pts), 57°F/14°C (18 pts), 55°F/13°C (8 pts)."
-                            />
-                            <ScoreRule
-                                label="Cloud Cover"
-                                max="20"
-                                description="Bees prefer sun. Foragers are out working, making the hive less crowded."
-                                detail="Sunny (20 pts), Partly Cloudy (17 pts), Mostly Cloudy (12 pts), Overcast (6 pts)."
-                            />
-                            <ScoreRule
-                                label="Wind Speed"
-                                max="20"
-                                description="High winds make bees defensive and can chill the brood."
-                                detail="<5mph/8km/h (20 pts), 10mph/16km/h (18 pts), 15mph/24km/h (12 pts), 20mph/32km/h (6 pts), 24mph/39km/h (2 pts)."
-                            />
-                            <ScoreRule
-                                label="Precipitation"
-                                max="15"
-                                description="Rain is a hard limit. Never open a hive in the rain."
-                                detail="0% Prob (15 pts), 10% (12 pts), 20% (8 pts), 35% (4 pts), 49% (1 pt)."
-                            />
-                            <ScoreRule
-                                label="Humidity"
-                                max="5"
-                                description="Bees regulate humidity easily if the air is moderate (30-70%)."
-                                detail="30-70% (5 pts). Outside this range (0 pts)."
-                            />
-                        </div>
-                    </div>
+                                <div className="grid gap-3">
+                                    <ScoreRule
+                                        label="Temperature"
+                                        max="40"
+                                        description="Best above 75°F (24°C). Bees are more active and brood is less likely to chill."
+                                        detail="75°F+/24°C+ (40 pts), 70°F/21°C (37 pts), 65°F/18°C (33 pts), 60°F/16°C (27 pts), 57°F/14°C (18 pts), 55°F/13°C (8 pts)."
+                                    />
+                                    <ScoreRule
+                                        label="Cloud Cover"
+                                        max="20"
+                                        description="Bees prefer sun. Foragers are out working, making the hive less crowded."
+                                        detail="Sunny (20 pts), Partly Cloudy (17 pts), Mostly Cloudy (12 pts), Overcast (6 pts)."
+                                    />
+                                    <ScoreRule
+                                        label="Wind Speed"
+                                        max="20"
+                                        description="High winds make bees defensive and can chill the brood."
+                                        detail="<5mph/8km/h (20 pts), 10mph/16km/h (18 pts), 15mph/24km/h (12 pts), 20mph/32km/h (6 pts), 24mph/39km/h (2 pts)."
+                                    />
+                                    <ScoreRule
+                                        label="Precipitation"
+                                        max="15"
+                                        description="Rain is a hard limit. Never open a hive in the rain."
+                                        detail="0% Prob (15 pts), 10% (12 pts), 20% (8 pts), 35% (4 pts), 49% (1 pt)."
+                                    />
+                                    <ScoreRule
+                                        label="Humidity"
+                                        max="5"
+                                        description="Bees regulate humidity easily if the air is moderate (30-70%)."
+                                        detail="30-70% (5 pts). Outside this range (0 pts)."
+                                    />
+                                </div>
+                            </div>
 
-                    {/* Critical Limits */}
-                    <div className="bg-red-50 rounded-xl p-4 border border-red-100">
-                        <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                            </svg>
-                            Hard Limits
-                        </h4>
-                        <p className="text-xs text-red-600 mb-2">
-                            A score will appear in <span className="font-bold text-black border-b border-black">black text</span> if any of these conditions are met, suggesting you should **not** inspect:
-                        </p>
-                        <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-red-700 list-disc ml-4">
-                            <li>Score below 40</li>
-                            <li>Temperature &lt; 55°F (13°C)</li>
-                            <li>Wind &gt; 24mph (39km/h)</li>
-                            <li>Rain Chance &gt; 49%</li>
-                            <li>Active Storms</li>
-                            <li>Raining Now</li>
-                        </ul>
-                    </div>
+                            {/* V1 Critical Limits */}
+                            <div className="bg-red-50 rounded-xl p-4 border border-red-100">
+                                <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                    </svg>
+                                    Hard Limits
+                                </h4>
+                                <p className="text-xs text-red-600 mb-2">
+                                    A score will appear in <span className="font-bold text-black border-b border-black">black text</span> if any of these conditions are met, suggesting you should **not** inspect:
+                                </p>
+                                <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-red-700 list-disc ml-4">
+                                    <li>Score below 40</li>
+                                    <li>Temperature &lt; 55°F (13°C)</li>
+                                    <li>Wind &gt; 24mph (39km/h)</li>
+                                    <li>Rain Chance &gt; 49%</li>
+                                    <li>Active Storms</li>
+                                    <li>Raining Now</li>
+                                </ul>
+                            </div>
 
-                    {/* TBH Heat Penalty */}
-                    <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
-                        <h4 className="font-bold text-orange-700 mb-2 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
-                            </svg>
-                            Top Bar Hive Mode
-                        </h4>
-                        <p className="text-xs text-orange-600 mb-2">
-                            Top Bar Hives are sensitive to heat — high temperatures can cause wax comb to slump or collapse.
-                        </p>
-                        <ul className="text-xs text-orange-700 space-y-1 list-disc ml-4">
-                            <li><strong>Heat Penalty:</strong> -10 pts for every 5°F (3°C) above 80°F (27°C)</li>
-                            <li><strong>Example:</strong> 85°F/29°C = -10 pts, 90°F/32°C = -20 pts</li>
-                            <li><strong>Hard Fail:</strong> Temperature &gt; 92°F (33°C) triggers a fail</li>
-                        </ul>
-                    </div>
+                            {/* V1 TBH Heat Penalty */}
+                            <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
+                                <h4 className="font-bold text-orange-700 mb-2 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                                    </svg>
+                                    Top Bar Hive Mode
+                                </h4>
+                                <p className="text-xs text-orange-600 mb-2">
+                                    Top Bar Hives are sensitive to heat — high temperatures can cause wax comb to slump or collapse.
+                                </p>
+                                <ul className="text-xs text-orange-700 space-y-1 list-disc ml-4">
+                                    <li><strong>Heat Penalty:</strong> -10 pts for every 5°F (3°C) above 80°F (27°C)</li>
+                                    <li><strong>Example:</strong> 85°F/29°C = -10 pts, 90°F/32°C = -20 pts</li>
+                                    <li><strong>Hard Fail:</strong> Temperature &gt; 92°F (33°C) triggers a fail</li>
+                                </ul>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* V2 Intro */}
+                            <p className="text-gray-600 leading-relaxed">
+                                The V2 Decision Points matrix (0-9 points) evaluates key weather bounds. Points are calculated unconditionally, allowing you to see the score potential even when safety fail-safes are triggered (which colors the cell Red).
+                            </p>
+
+                            {/* V2 Point Breakdown */}
+                            <div className="space-y-4">
+                                <h4 className="font-bold text-[#4A3C28] uppercase tracking-wider text-xs">V2 Point System</h4>
+
+                                <div className="grid gap-3">
+                                    <ScoreRule
+                                        label="Temperature"
+                                        max="3"
+                                        description="Warm weather is safer. Brood chilling is a primary concern."
+                                        detail="Optimal: 65°F - 85°F (3 pts). Sub-optimal: 55°F - 64°F or 86°F - 92°F (1 pt). Else (0 pts)."
+                                    />
+                                    <ScoreRule
+                                        label="Time of Day"
+                                        max="2"
+                                        description="Inspect during heavy foraging hours when the colony is less crowded."
+                                        detail="Optimal: 9:00 AM - 2:00 PM (2 pts). Sub-optimal: 8:00 AM - 9:00 AM or 2:00 PM - 5:00 PM (1 pt). Else (0 pts)."
+                                    />
+                                    <ScoreRule
+                                        label="Sky Condition"
+                                        max="2"
+                                        description="Sunny, clear weather encourages flight and lowers defensive tempers."
+                                        detail="Sunny / Clear (<= 30% clouds) (2 pts). Cloudy / Overcast (> 30% clouds) (0 pts)."
+                                    />
+                                    <ScoreRule
+                                        label="Wind Speed"
+                                        max="2"
+                                        description="Calm winds preserve hive warmth and prevent flight disruptions."
+                                        detail="Optimal: < 10mph (2 pts). Sub-optimal: 10 - 15mph (1 pt). Else (0 pts)."
+                                    />
+                                </div>
+                            </div>
+
+                            {/* V2 Fail-Safes */}
+                            <div className="bg-red-50 rounded-xl p-4 border border-red-100">
+                                <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                                    </svg>
+                                    V2 Safety Fail-Safes (Forces Red Cell)
+                                </h4>
+                                <p className="text-xs text-red-600 mb-2">
+                                    If any of these thresholds are triggered, the cell is classified as <strong>Inadvisable (colored Red)</strong> due to severe safety risks, but the score display will show the full accumulated points:
+                                </p>
+                                <ul className="grid grid-cols-1 gap-y-1 text-xs text-red-700 list-disc ml-4 font-medium">
+                                    <li><strong>Temperature:</strong> &lt; 55°F (13°C) (extreme cold / brood death risk)</li>
+                                    <li><strong>Wind Speed:</strong> &gt; 18mph (29km/h) ( colony aggression )</li>
+                                    <li><strong>Precipitation:</strong> Active rain or rain threat (&gt; 0.02 in or rain chance &gt;= 50%)</li>
+                                    <li><strong>Barometric Drop:</strong> Drop of &ge; 1.5 hPa in the preceding hour (approaching storm)</li>
+                                </ul>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Footer */}
