@@ -280,10 +280,9 @@ export class WeatherService {
                         sunsetMinute = parseInt(sunsetStr.slice(14, 16));
                     }
 
-                    const slotEndHour = startHour + 1;
                     const sunsetTimeInMinutes = sunsetHour * 60 + sunsetMinute;
-                    const slotEndTimeInMinutes = slotEndHour * 60;
-                    const isSafeBeforeSunset = slotEndTimeInMinutes <= (sunsetTimeInMinutes - 60);
+                    const slotStartTimeInMinutes = startHour * 60;
+                    const isSafeBeforeSunset = slotStartTimeInMinutes <= (sunsetTimeInMinutes - 60);
 
                     const temp1HourAgo = i > 0 ? (temps[i - 1] ?? temp) : temp;
                     const isWarmEnough1HourAgo = temp1HourAgo >= 55;
@@ -312,7 +311,7 @@ export class WeatherService {
 
                     if (!isSafeBeforeSunset) {
                         const sunsetTimeStr = `${sunsetHour > 12 ? sunsetHour - 12 : sunsetHour}:${sunsetMinute.toString().padStart(2, '0')}${sunsetHour >= 12 ? 'pm' : 'am'}`;
-                        issuesV2.push(`Too close to sunset (must end at least 1 hour before sunset at ${sunsetTimeStr} to allow foragers to return)`);
+                        issuesV2.push(`Too close to sunset (must start at least 1 hour before sunset at ${sunsetTimeStr} to allow foragers to return)`);
                     }
 
                     // Step 2: High-Desert Barometric Pressure Velocity Calculation
