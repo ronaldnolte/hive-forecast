@@ -12,6 +12,14 @@ export interface InspectionWindow {
     scoreBreakdown: Record<string, number>;
     displayHour: number;
     displayDate: string;
+    
+    // V2 Scoring System
+    scoreV2: number;
+    classificationV2: 'Optimal' | 'Viable' | 'Inadvisable';
+    issuesV2: string[];
+    scoreBreakdownV2: Record<string, number>;
+    pressureHpa: number;
+    pressureTrend: number;
 }
 
 export class WeatherService {
@@ -71,11 +79,11 @@ export class WeatherService {
     }
 
     /**
-     * Fetch raw weather data
+     * Fetch raw weather data (Includes pressure_msl for storm tracking)
      */
     static async getWeatherForecast(lat: number, lng: number, elevation?: number, countryCode?: string): Promise<any> {
         const model = this.getModelForCountry(countryCode);
-        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7&models=${model}`;
+        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m,pressure_msl&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7&models=${model}`;
 
         if (elevation !== undefined) {
             url += `&elevation=${elevation}`;
@@ -103,6 +111,7 @@ export class WeatherService {
         const codes = hourly.weathercode as number[];
         const clouds = hourly.cloudcover as number[];
         const winds = hourly.windspeed_10m as number[];
+        const pressures = (hourly.pressure_msl || []) as number[];
 
         // Group indices by Date (yyyy-MM-dd)
         const dayIndices: Record<string, number[]> = {};
@@ -132,7 +141,7 @@ export class WeatherService {
                 if (startIndex !== undefined) {
                     const i = startIndex;
 
-                    // Use raw hourly values directly — no averaging
+                    // Use raw hourly values directly
                     const temp = temps[i];
                     const wind = winds[i];
                     const cloud = clouds[i];
@@ -140,6 +149,11 @@ export class WeatherService {
                     const precip = precips[i];
                     const code = codes[i];
                     const humidity = humidities[i];
+                    const pressure = pressures[i] || 1013.25;
+
+                    // Compute barometric pressure rate of change
+                    const prevPressure = i > 0 ? (pressures[i - 1] || pressure) : pressure;
+                    const pressureTrend = prevPressure - pressure; // positive means dropping
 
                     const issues: string[] = [];
 
@@ -217,6 +231,71 @@ export class WeatherService {
                     breakdown['Humidity'] = humidityScore;
                     totalScore += humidityScore;
 
+                    // ============================================
+                    // V2 DECISION MATRIX CALCULATION (0-9 POINTS)
+                    // ============================================
+                    const issuesV2: string[] = [];
+
+                    // Step 1: Check Fail-Safes (Short-Circuit Logic)
+                    if (temp < 57) {
+                        issuesV2.push(`Too Cold (< 57°F / 14°C)`);
+                    }
+                    
+                    const hasRainV2 = precip > 0.02 || [95, 96, 99].includes(code) || (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || precipProb >= 50;
+                    if (hasRainV2) {
+                        issuesV2.push(`Active Rain / Threat of Rain`);
+                    }
+
+                    if (wind > 18) {
+                        const wStr = isMetric ? `${Math.round(18 * 1.60934)}km/h` : `18mph`;
+                        issuesV2.push(`Too Windy (> ${wStr})`);
+                    }
+
+                    const isDroppingRapidly = pressureTrend >= 1.5;
+                    if (isDroppingRapidly) {
+                        issuesV2.push(`Pressure Dropping Rapidly (Approaching Storm)`);
+                    }
+
+                    // Step 2: Points calculations (If fail-safes pass)
+                    let tempPts = 0;
+                    let timePts = 0;
+                    let skyPts = 0;
+                    let windPts = 0;
+
+                    if (issuesV2.length === 0) {
+                        // Temperature
+                        if (temp >= 68 && temp <= 85) tempPts = 3;
+                        else if ((temp >= 58 && temp <= 67) || (temp >= 86 && temp <= 92)) tempPts = 1;
+                        
+                        // Time of Day
+                        if (startHour >= 10 && startHour <= 13) timePts = 2; // 10am-2pm (10, 11, 12, 13 slots)
+                        else if ((startHour >= 8 && startHour <= 9) || (startHour >= 14 && startHour <= 17)) timePts = 1; // 8:30am-9:59am, 2:01pm-5pm
+                        
+                        // Sky Condition
+                        if (cloud <= 30) skyPts = 2; // Clear/Sunny
+                        else skyPts = 0; // Overcast/Cloudy
+                        
+                        // Wind
+                        if (wind < 10) windPts = 2;
+                        else if (wind >= 10 && wind <= 15) windPts = 1;
+                    }
+
+                    const scoreV2 = issuesV2.length > 0 ? 0 : (tempPts + timePts + skyPts + windPts);
+                    
+                    // Step 3: Determine Classification
+                    let classificationV2: 'Optimal' | 'Viable' | 'Inadvisable' = 'Inadvisable';
+                    if (issuesV2.length === 0) {
+                        if (scoreV2 >= 7) classificationV2 = 'Optimal';
+                        else if (scoreV2 >= 4) classificationV2 = 'Viable';
+                    }
+
+                    const breakdownV2 = {
+                        'Temperature': tempPts,
+                        'Time of Day': timePts,
+                        'Sky Condition': skyPts,
+                        'Wind Speed': windPts
+                    };
+
                     windows.push({
                         startTime: new Date(times[i]),
                         endTime: new Date(new Date(times[i]).getTime() + 1 * 60 * 60 * 1000), // +1 hour
@@ -231,6 +310,14 @@ export class WeatherService {
                         scoreBreakdown: breakdown,
                         displayHour: startHour,
                         displayDate: dayKey,
+                        
+                        // New V2 decision matrix output
+                        scoreV2,
+                        classificationV2,
+                        issuesV2,
+                        scoreBreakdownV2: breakdownV2,
+                        pressureHpa: pressure,
+                        pressureTrend
                     });
                 }
             }
