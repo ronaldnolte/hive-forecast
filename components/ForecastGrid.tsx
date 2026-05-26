@@ -27,6 +27,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     const [isTBH, setIsTBH] = useState(false);
     const [resolvedCoords, setResolvedCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [diagWindow, setDiagWindow] = useState<InspectionWindow | null>(null);
+    const [selectedMobileDate, setSelectedMobileDate] = useState<string>('');
 
     // Locale settings (US = Imperial/12h, Others = Metric/24h)
     const isUS = !location.countryCode || location.countryCode.toLowerCase() === 'us';
@@ -96,6 +97,12 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     // Get "YYYY-MM-DD" string for the location's timezone
     const locationToday = now.toLocaleDateString('en-CA', { timeZone: timezone });
     const filteredDates = sortedDates.filter(dateStr => dateStr >= locationToday);
+
+    useEffect(() => {
+        if (filteredDates.length > 0 && !selectedMobileDate) {
+            setSelectedMobileDate(filteredDates[0]);
+        }
+    }, [filteredDates, selectedMobileDate]);
 
     const timeSlots = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
@@ -248,7 +255,81 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                 <h3 className="text-sm font-black text-[#8B4513] mb-3.5 flex items-center gap-2 bg-white/70 border border-amber-200 px-4 py-2 rounded-full shadow-sm">
                     <span>🔬</span> Bee Inspection Forecast (0-9 Decision Points)
                 </h3>
-                <div className="overflow-x-auto rounded-xl shadow-md border border-gray-200 w-full bg-white">
+
+                {/* Mobile Day Selector Pill Bar */}
+                <div className="flex md:hidden overflow-x-auto gap-1.5 py-2 px-1 mb-3.5 no-scrollbar justify-start w-full">
+                    {filteredDates.map(dateStr => {
+                        const date = new Date(dateStr + 'T12:00:00');
+                        const isActive = dateStr === selectedMobileDate;
+                        return (
+                            <button
+                                key={dateStr}
+                                onClick={() => setSelectedMobileDate(dateStr)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 border ${
+                                    isActive
+                                        ? 'bg-[#8B4513] text-white border-[#8B4513] shadow-sm scale-105'
+                                        : 'bg-white text-gray-600 border-amber-100 hover:bg-amber-50/50'
+                                }`}
+                            >
+                                <span className="font-extrabold">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                                <span className="text-[9px] opacity-80 ml-1">{date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* MOBILE VIEW TABLE (Visible below md) - 2 Columns: Time & Selected Day */}
+                <div className="block md:hidden rounded-xl shadow-md border border-gray-200 w-full bg-white overflow-hidden">
+                    <table className="border-collapse w-full text-xs table-fixed">
+                        <thead>
+                            <tr className="bg-amber-50/50">
+                                <th className="border-b border-r border-gray-200 px-3 py-2.5 font-bold text-[#8B4513] w-20 text-center">Time</th>
+                                {filteredDates.filter(d => d === selectedMobileDate).map(dateStr => {
+                                    const date = new Date(dateStr + 'T12:00:00');
+                                    return (
+                                        <th key={dateStr} className="border-b border-gray-200 px-2 py-2.5 text-center bg-amber-50/10">
+                                            <div className="font-extrabold text-[#8B4513]">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                                            <div className="text-[10px] text-gray-500 font-bold">{date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}</div>
+                                        </th>
+                                    );
+                                })}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {timeSlots.map(hour => (
+                                <tr key={hour} className="hover:bg-amber-50/20">
+                                    <td className="border-b border-r border-gray-200 px-3 py-2.5 font-bold text-gray-500 text-[10px] w-20 text-center bg-white">
+                                        {formatTimeSlot(hour)}
+                                    </td>
+                                    {filteredDates.filter(d => d === selectedMobileDate).map(dateStr => {
+                                        const window = gridData[dateStr]?.[hour];
+                                        if (!window) {
+                                            return <td key={dateStr} className="border-b border-gray-200 bg-gray-50 h-10"></td>;
+                                        }
+
+                                        const isFail = window.classificationV2 === 'Inadvisable';
+                                        const textColor = isFail ? 'text-black' : 'text-white';
+
+                                        return (
+                                            <td
+                                                key={dateStr}
+                                                className={`border-b border-gray-200 h-10 cursor-pointer hover:opacity-90 transition-opacity ${getScoreColorV2(window.classificationV2, window.scoreV2)}`}
+                                                onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
+                                            >
+                                                <div className={`flex items-center justify-center h-full font-black text-sm ${textColor}`}>
+                                                    {window.scoreV2}
+                                                </div>
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* DESKTOP VIEW TABLE (Visible on md and above) - Full Week Grid */}
+                <div className="hidden md:block overflow-x-auto rounded-xl shadow-md border border-gray-200 w-full bg-white">
                     <table className="border-collapse w-full text-xs">
                         <thead>
                             <tr className="bg-amber-50/50">
