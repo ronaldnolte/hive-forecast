@@ -168,22 +168,22 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     }
 
     return (
-        <div className="min-h-screen p-4 pb-20">
+        <div className="min-h-screen p-2 sm:p-4 pb-10 sm:pb-20">
             {/* Unified Header */}
-            <div className="max-w-xl mx-auto mb-8 px-4">
-                <div className="flex items-center justify-between gap-6 bg-white/50 p-4 rounded-2xl backdrop-blur-sm shadow-sm border border-white/20">
-                    <div className="flex items-center gap-4">
+            <div className="max-w-xl mx-auto mb-3 sm:mb-8 px-2 sm:px-4">
+                <div className="flex items-center justify-between gap-4 sm:gap-6 bg-white/50 p-2 sm:p-4 rounded-2xl backdrop-blur-sm shadow-sm border border-white/20">
+                    <div className="flex items-center gap-3 sm:gap-4">
                         <a href="/" className="shrink-0">
                             <img
                                 src="/icon-192.png"
                                 alt="Logo"
-                                className="w-12 h-12 rounded-xl shadow-sm"
+                                className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-sm"
                             />
                         </a>
 
                         <div>
-                            <h2 className="text-xl font-bold text-[#8B4513] leading-tight">Hive Forecast</h2>
-                            <p className="text-xs text-gray-600 font-medium">
+                            <h2 className="text-lg sm:text-xl font-bold text-[#8B4513] leading-tight">Hive Forecast</h2>
+                            <p className="text-[10px] sm:text-xs text-gray-600 font-medium">
                                 {location.type === 'zip'
                                     ? `Zip: ${location.zip}`
                                     : `Loc: ${location.lat?.toFixed(2)}, ${location.lng?.toFixed(2)}`}
@@ -194,7 +194,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                     {onBack && (
                         <button
                             onClick={onBack}
-                            className="shrink-0 text-xs font-semibold bg-white border border-amber-200 px-4 py-2 rounded-xl text-amber-800 shadow-sm hover:bg-amber-50 hover:border-amber-300 transition-all active:scale-95 whitespace-nowrap"
+                            className="shrink-0 text-[10px] sm:text-xs font-semibold bg-white border border-amber-200 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-amber-800 shadow-sm hover:bg-amber-50 hover:border-amber-300 transition-all active:scale-95 whitespace-nowrap"
                         >
                             Change Location
                         </button>
@@ -203,11 +203,11 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
             </div>
 
             {/* Minimal Header: Legend + Help */}
-            <div className="mb-6 space-y-4">
+            <div className="mb-3 sm:mb-6 space-y-2 sm:space-y-4">
 
                 {/* Unified Legend */}
-                <div className="flex flex-col items-center justify-center text-[10px] sm:text-xs bg-white/70 p-4 rounded-2xl border border-amber-100 shadow-sm max-w-sm mx-auto backdrop-blur-sm">
-                    <span className="font-extrabold text-[#8B4513] mb-1.5 uppercase tracking-wider text-[9px]">Decision Points (0-9)</span>
+                <div className="flex flex-col items-center justify-center text-[10px] sm:text-xs bg-white/70 p-2 sm:p-4 rounded-2xl border border-amber-100 shadow-sm max-w-sm mx-auto backdrop-blur-sm">
+                    <span className="font-extrabold text-[#8B4513] mb-1 sm:mb-1.5 uppercase tracking-wider text-[9px]">Decision Points (0-9)</span>
                     <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
                         <LegendItem label="Optimal 7-9" color="bg-green-600" />
                         <LegendItem label="Viable 4-6" color="bg-amber-400" />
@@ -216,13 +216,13 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                 </div>
 
                 {/* Help Link */}
-                <div className="flex flex-col items-center gap-2">
-                    <div className="text-center text-[10px] text-gray-400 italic">
+                <div className="flex flex-col items-center gap-1 sm:gap-2">
+                    <div className="text-center text-[9px] sm:text-[10px] text-gray-400 italic">
                         Tap a cell to view detailed inspection readiness breakdown
                     </div>
                     <button
                         onClick={() => setShowHelpModal(true)}
-                        className="text-[11px] text-amber-600 hover:text-amber-700 font-bold underline decoration-dotted underline-offset-4 transition-colors"
+                        className="text-[10px] sm:text-[11px] text-amber-600 hover:text-amber-700 font-bold underline decoration-dotted underline-offset-4 transition-colors"
                     >
                         How are these scores calculated?
                     </button>
@@ -231,14 +231,11 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
             {/* V2 GRID (0-9 POINTS) */}
             <div className="w-full flex flex-col items-center max-w-4xl mx-auto px-1 sm:px-2">
-                <h3 className="text-sm font-black text-[#8B4513] mb-3.5 flex items-center gap-2 bg-white/70 border border-amber-200 px-4 py-2 rounded-full shadow-sm">
-                    <span>🔬</span> Bee Inspection Forecast (0-9 Decision Points)
-                </h3>
                 <div className="rounded-xl shadow-md border border-gray-200 w-full bg-white overflow-hidden">
                     <table className="border-collapse w-full text-xs table-fixed">
                         <thead>
                             <tr className="bg-amber-50/50">
-                                <th className="border-b border-r border-gray-200 py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513] w-[46px] sm:w-20 text-center">Time</th>
+                                <th className="border-b border-r border-gray-200 py-1.5 sm:py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513] w-[46px] sm:w-20 text-center">Time</th>
                                 {filteredDates.map(dateStr => {
                                     const date = new Date(dateStr + 'T12:00:00');
                                     // Compact 2-letter weekday formatter for mobile screens
@@ -251,14 +248,14 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                         return wd.slice(0, 2); // Tu, We, Fr, Mo
                                     };
                                     return (
-                                        <th key={dateStr} className="border-b border-gray-200 py-2.5 px-0.5 text-center min-w-0">
+                                        <th key={dateStr} className="border-b border-gray-200 py-1.5 sm:py-2.5 px-0.5 text-center min-w-0">
                                             <div className="font-extrabold text-[#8B4513] hidden sm:block">
                                                 {date.toLocaleDateString('en-US', { weekday: 'short' })}
                                             </div>
-                                            <div className="font-extrabold text-[#8B4513] block sm:hidden">
+                                            <div className="font-extrabold text-[#8B4513] block sm:hidden text-[10px]">
                                                 {getCompactDayStr(dateStr)}
                                             </div>
-                                            <div className="text-[9px] sm:text-[10px] text-gray-500 font-bold leading-none mt-0.5">
+                                            <div className="text-[8px] sm:text-[10px] text-gray-500 font-bold leading-none mt-0.5">
                                                 {date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
                                             </div>
                                         </th>
@@ -269,13 +266,13 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                         <tbody>
                             {timeSlots.map(hour => (
                                 <tr key={hour} className="hover:bg-amber-50/20">
-                                    <td className="border-b border-r border-gray-200 py-2 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[9px] sm:text-[10px] w-[46px] sm:w-20 text-center">
+                                    <td className="border-b border-r border-gray-200 h-7 sm:h-10 py-0 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[9px] sm:text-[10px] w-[46px] sm:w-20 text-center">
                                         {formatTimeSlot(hour)}
                                     </td>
                                     {filteredDates.map(dateStr => {
                                         const window = gridData[dateStr]?.[hour];
                                         if (!window) {
-                                            return <td key={dateStr} className="border-b border-gray-200 bg-gray-50 h-10 min-w-0"></td>;
+                                            return <td key={dateStr} className="border-b border-gray-200 bg-gray-50 h-7 sm:h-10 min-w-0"></td>;
                                         }
 
                                         const isFail = window.classificationV2 === 'Inadvisable';
@@ -284,10 +281,10 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                         return (
                                             <td
                                                 key={dateStr}
-                                                className={`border-b border-gray-200 h-10 cursor-pointer hover:opacity-90 transition-opacity min-w-0 ${getScoreColorV2(window.classificationV2, window.scoreV2)}`}
+                                                className={`border-b border-gray-200 h-7 sm:h-10 cursor-pointer hover:opacity-90 transition-opacity min-w-0 ${getScoreColorV2(window.classificationV2, window.scoreV2)}`}
                                                 onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
                                             >
-                                                <div className={`flex items-center justify-center h-full font-black text-xs sm:text-sm ${textColor}`}>
+                                                <div className={`flex items-center justify-center h-full font-black text-[10px] sm:text-sm ${textColor}`}>
                                                     {window.scoreV2}
                                                 </div>
                                             </td>
