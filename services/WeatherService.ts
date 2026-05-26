@@ -232,58 +232,76 @@ export class WeatherService {
                     totalScore += humidityScore;
 
                     // ============================================
+                    // ============================================
                     // V2 DECISION MATRIX CALCULATION (0-9 POINTS)
                     // ============================================
                     const issuesV2: string[] = [];
 
-                    // Step 1: Check Fail-Safes (Short-Circuit Logic)
-                    if (temp < 55) {
-                        issuesV2.push(`Too Cold (< 55°F / 13°C)`);
+                    // Step 1: Check Fail-Safes (Short-Circuit Hard Aborts)
+                    if (temp < 57) {
+                        issuesV2.push(`Brood Chill Threshold Triggered (Temp < 57°F / 14°C)`);
+                    }
+                    if (temp > 92) {
+                        issuesV2.push(`Comb Heat/Heat Stroke Threshold Triggered (Temp > 92°F / 33°C)`);
                     }
                     
                     const hasRainV2 = precip > 0.02 || [95, 96, 99].includes(code) || (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || precipProb >= 50;
                     if (hasRainV2) {
-                        issuesV2.push(`Active Rain / Threat of Rain`);
+                        issuesV2.push(`Active Precipitation Triggered`);
                     }
 
                     if (wind > 18) {
                         const wStr = isMetric ? `${Math.round(18 * 1.60934)}km/h` : `18mph`;
-                        issuesV2.push(`Too Windy (> ${wStr})`);
+                        issuesV2.push(`Flight Disruption Wind Triggered (Wind > ${wStr})`);
                     }
 
-                    const isDroppingRapidly = pressureTrend >= 1.5;
-                    if (isDroppingRapidly) {
-                        issuesV2.push(`Pressure Dropping Rapidly (Approaching Storm)`);
+                    // Step 2: High-Desert Barometric Pressure Velocity Calculation
+                    const oldestPressure = i >= 3 ? (pressures[i - 3] || pressure) : (pressures[0] || pressure);
+                    const pressureDelta3hr = oldestPressure - pressure; // positive means dropping
+                    
+                    let pressure_penalty = 0;
+                    if (pressureDelta3hr >= 4.0) {
+                        issuesV2.push(`Imminent severe barometric front (Delta P = ${pressureDelta3hr.toFixed(1)} mb)`);
+                    } else if (pressureDelta3hr >= 1.5) {
+                        pressure_penalty = -2;
                     }
 
-                    // Step 2: Points calculations (Unconditional)
+                    // Step 3: Points calculations & Weighted Scoring Matrix
                     let tempPts = 0;
                     let timePts = 0;
                     let skyPts = 0;
                     let windPts = 0;
-
-                    // Temperature (Optimal: 65-85 -> +3; Sub-optimal: 55-64 or 86-92 -> +1)
-                    if (temp >= 65 && temp <= 85) tempPts = 3;
-                    else if ((temp >= 55 && temp < 65) || (temp > 85 && temp <= 92)) tempPts = 1;
-                    
-                    // Time of Day (Optimal: 9am-2pm [9-13] -> +2; Sub-optimal: 8am or 2pm-5pm [8, 14-17] -> +1)
-                    if (startHour >= 9 && startHour <= 13) timePts = 2;
-                    else if (startHour === 8 || (startHour >= 14 && startHour <= 17)) timePts = 1;
-                    
-                    // Sky Condition (Sunny: <= 30% clouds -> +2)
-                    if (cloud <= 30) skyPts = 2;
-                    
-                    // Wind (Optimal: <10mph -> +2; Sub-optimal: 10-15mph -> +1)
-                    if (wind < 10) windPts = 2;
-                    else if (wind >= 10 && wind <= 15) windPts = 1;
-
-                    const scoreV2 = tempPts + timePts + skyPts + windPts;
-                    
-                    // Step 3: Determine Classification
+                    let scoreV2 = 0;
                     let classificationV2: 'Optimal' | 'Viable' | 'Inadvisable' = 'Inadvisable';
-                    if (issuesV2.length === 0) {
+
+                    if (issuesV2.length > 0) {
+                        // Hard Abort triggered: do not calculate scoring points (returns 0)
+                        scoreV2 = 0;
+                        classificationV2 = 'Inadvisable';
+                    } else {
+                        // Temperature (Optimal: 68-85 -> +3; Sub-optimal: 58-67 or 86-91 -> +1)
+                        if (temp >= 68 && temp <= 85) tempPts = 3;
+                        else if ((temp >= 58 && temp <= 67) || (temp >= 86 && temp <= 91)) tempPts = 1;
+                        
+                        // Time of Day (Optimal Foraging Window: 10am-2pm -> +2; Sub-optimal: 8:30am-9:59am or 2:01pm-5pm -> +1)
+                        if (startHour >= 10 && startHour <= 13) timePts = 2;
+                        else if ((startHour >= 8 && startHour <= 9) || (startHour >= 14 && startHour <= 16)) timePts = 1;
+                        
+                        // Wind (Optimal: <10mph -> +2; Sub-optimal: 10-15mph -> +1; else 0)
+                        if (wind < 10) windPts = 2;
+                        else if (wind >= 10 && wind <= 15) windPts = 1;
+
+                        // Sky Condition (Clear: <30% -> +2; Partly Cloudy: 30-70% -> +1; else 0)
+                        if (cloud < 30) skyPts = 2;
+                        else if (cloud >= 30 && cloud <= 70) skyPts = 1;
+
+                        // Apply Barometric Pressure Penalty
+                        scoreV2 = Math.max(0, tempPts + timePts + skyPts + windPts + pressure_penalty);
+                        
+                        // Determine Suitability Classification
                         if (scoreV2 >= 7) classificationV2 = 'Optimal';
                         else if (scoreV2 >= 4) classificationV2 = 'Viable';
+                        else classificationV2 = 'Inadvisable';
                     }
 
                     const breakdownV2 = {

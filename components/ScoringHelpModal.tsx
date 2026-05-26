@@ -152,19 +152,19 @@ export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
                                         label="Temperature"
                                         max="3"
                                         description="Warm weather is safer. Brood chilling is a primary concern."
-                                        detail="Optimal: 65°F - 85°F (3 pts). Sub-optimal: 55°F - 64°F or 86°F - 92°F (1 pt). Else (0 pts)."
+                                        detail="Optimal: 68°F - 85°F (3 pts). Sub-optimal: 58°F - 67°F or 86°F - 91°F (1 pt). Else (0 pts)."
                                     />
                                     <ScoreRule
                                         label="Time of Day"
                                         max="2"
                                         description="Inspect during heavy foraging hours when the colony is less crowded."
-                                        detail="Optimal: 9:00 AM - 2:00 PM (2 pts). Sub-optimal: 8:00 AM - 9:00 AM or 2:00 PM - 5:00 PM (1 pt). Else (0 pts)."
+                                        detail="Optimal: 10:00 AM - 2:00 PM (2 pts). Sub-optimal: 8:30 AM - 9:59 AM or 2:01 PM - 5:00 PM (1 pt). Else (0 pts)."
                                     />
                                     <ScoreRule
                                         label="Sky Condition"
                                         max="2"
                                         description="Sunny, clear weather encourages flight and lowers defensive tempers."
-                                        detail="Sunny / Clear (<= 30% clouds) (2 pts). Cloudy / Overcast (> 30% clouds) (0 pts)."
+                                        detail="Clear / Sunny (< 30% clouds) (2 pts). Partly Cloudy (30% - 70% clouds) (1 pt). Overcast (> 70% clouds) (0 pts)."
                                     />
                                     <ScoreRule
                                         label="Wind Speed"
@@ -184,13 +184,15 @@ export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
                                     V2 Safety Fail-Safes (Forces Red Cell)
                                 </h4>
                                 <p className="text-xs text-red-600 mb-2">
-                                    If any of these thresholds are triggered, the cell is classified as <strong>Inadvisable (colored Red)</strong> due to severe safety risks, but the score display will show the full accumulated points:
+                                    If any of these conditions evaluate to TRUE, execution is immediately aborted (classification: <strong>Inadvisable / Red Cell</strong>) and points default to 0:
                                 </p>
                                 <ul className="grid grid-cols-1 gap-y-1 text-xs text-red-700 list-disc ml-4 font-medium">
-                                    <li><strong>Temperature:</strong> &lt; 55°F (13°C) (extreme cold / brood death risk)</li>
-                                    <li><strong>Wind Speed:</strong> &gt; 18mph (29km/h) ( colony aggression )</li>
-                                    <li><strong>Precipitation:</strong> Active rain or rain threat (&gt; 0.02 in or rain chance &gt;= 50%)</li>
-                                    <li><strong>Barometric Drop:</strong> Drop of &ge; 1.5 hPa in the preceding hour (approaching storm)</li>
+                                    <li><strong>Brood Chill Threshold:</strong> Temperature &lt; 57°F (14°C) (extreme cold risk)</li>
+                                    <li><strong>Comb Heat/Heat Stroke:</strong> Temperature &gt; 92°F (33°C) (slumping wax risk)</li>
+                                    <li><strong>Flight Disruption Wind:</strong> Wind speed &gt; 18mph (colony aggression risk)</li>
+                                    <li><strong>Active Precipitation:</strong> Raining, stormy, or precipitation chance &ge; 50%</li>
+                                    <li><strong>Severe Storm Plunge:</strong> 3-hour barometric pressure drop &ge; 4.0 hPa (severe front approaching)</li>
+                                    <li><em>Note: A moderate drop of 1.5 to 4.0 hPa does not abort, but applies a <strong>-2 point penalty</strong>.</em></li>
                                 </ul>
                             </div>
                         </>
