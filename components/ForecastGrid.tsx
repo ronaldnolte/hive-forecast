@@ -96,7 +96,24 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     const locationToday = now.toLocaleDateString('en-CA', { timeZone: timezone });
     const filteredDates = sortedDates.filter(dateStr => dateStr >= locationToday);
 
-    const timeSlots = Array.from(new Set(windows.map(w => w.displayHour))).sort((a, b) => a - b);
+    const initialTimeSlots = Array.from(new Set(windows.map(w => w.displayHour))).sort((a, b) => a - b);
+    const timeSlots: number[] = [...initialTimeSlots];
+
+    // If trailing lines are entirely too close to sunset for all days of the week, omit them
+    while (timeSlots.length > 0) {
+        const lastHour = timeSlots[timeSlots.length - 1];
+        const allTooLate = filteredDates.every(dateStr => {
+            const w = gridData[dateStr]?.[lastHour];
+            if (!w) return true;
+            return w.issuesV2.some(issue => issue.toLowerCase().includes('sunset'));
+        });
+
+        if (allTooLate) {
+            timeSlots.pop();
+        } else {
+            break;
+        }
+    }
 
     const getScoreColor = (score: number) => {
         if (score >= 85) return 'bg-green-700';
