@@ -259,7 +259,7 @@ export class WeatherService {
                     const isSafeBeforeSunset = slotEndTimeInMinutes <= (sunsetTimeInMinutes - 60);
 
                     const temp1HourAgo = i > 0 ? (temps[i - 1] ?? temp) : temp;
-                    const isWarmEnough1HourAgo = temp1HourAgo >= 60;
+                    const isWarmEnough1HourAgo = temp1HourAgo >= 55;
 
                     // Step 1: Check Fail-Safes (Short-Circuit Hard Aborts)
                     if (temp < 57) {
@@ -280,7 +280,7 @@ export class WeatherService {
                     }
 
                     if (!isWarmEnough1HourAgo) {
-                        issuesV2.push(`Bees not awake (temperature 1 hour ago was ${Math.round(temp1HourAgo)}°F, must be 60°F+ for at least 1 hour)`);
+                        issuesV2.push(`Bees not awake (temperature 1 hour ago was ${Math.round(temp1HourAgo)}°F, must be 55°F+ for at least 1 hour)`);
                     }
 
                     if (!isSafeBeforeSunset) {
@@ -318,10 +318,9 @@ export class WeatherService {
                     if (temp >= 68 && temp <= 85) tempPts = 3;
                     else if ((temp >= 58 && temp <= 67) || (temp >= 86 && temp <= 91)) tempPts = 1;
                     
-                    // Time of Day (Optimal: >= 60°F 1 hour ago AND >= 1 hour before sunset -> +2; Sub-optimal: >= 55°F 1 hour ago -> +1; else 0)
-                    if (isSafeBeforeSunset) {
-                        if (temp1HourAgo >= 60) timePts = 2;
-                        else if (temp1HourAgo >= 55) timePts = 1;
+                    // Time of Day (Optimal: >= 55°F 1 hour ago AND >= 1 hour before sunset -> +2; else 0)
+                    if (isSafeBeforeSunset && temp1HourAgo >= 55) {
+                        timePts = 2;
                     }
                     
                     // Wind (Optimal: <10mph -> +2; Sub-optimal: 10-15mph -> +1; else 0)
