@@ -252,7 +252,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                     <table className="border-collapse w-full text-xs">
                         <thead>
                             <tr className="bg-amber-50/50">
-                                <th className="border-b border-r border-gray-200 px-3 py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513]">Time</th>
+                                <th className="border-b border-r border-gray-200 px-3 py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513] w-20 min-w-[80px] max-w-[80px]">Time</th>
                                 {filteredDates.map(dateStr => {
                                     const date = new Date(dateStr + 'T12:00:00');
                                     return (
@@ -267,7 +267,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                         <tbody>
                             {timeSlots.map(hour => (
                                 <tr key={hour} className="hover:bg-amber-50/20">
-                                    <td className="border-b border-r border-gray-200 px-3 py-2 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[10px]">
+                                    <td className="border-b border-r border-gray-200 px-3 py-2 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[10px] w-20 min-w-[80px] max-w-[80px]">
                                         {formatTimeSlot(hour)}
                                     </td>
                                     {filteredDates.map(dateStr => {
