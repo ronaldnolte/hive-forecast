@@ -451,9 +451,12 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                         <span className="font-bold text-gray-800">{selectedWindow.pressureHpa.toFixed(1)} hPa</span>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-gray-500 font-bold block">Hourly Trend</span>
-                                        <span className={`font-bold ${selectedWindow.pressureTrend >= 1.5 ? 'text-red-600' : 'text-blue-600'}`}>
-                                            {selectedWindow.pressureTrend > 0 ? '↓' : '↑'} {Math.abs(selectedWindow.pressureTrend).toFixed(1)} hPa/hr
+                                        <span className="text-gray-500 font-bold block">3-Hour Delta</span>
+                                        <span className={`font-bold ${
+                                            selectedWindow.pressureDelta3hr >= 4.0 ? 'text-red-600' :
+                                            selectedWindow.pressureDelta3hr >= 1.5 ? 'text-orange-500' : 'text-blue-600'
+                                        }`}>
+                                            {selectedWindow.pressureDelta3hr > 0 ? '↓' : '↑'} {Math.abs(selectedWindow.pressureDelta3hr).toFixed(1)} hPa/3h
                                         </span>
                                     </div>
                                 </div>

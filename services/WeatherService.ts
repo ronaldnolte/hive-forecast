@@ -20,6 +20,7 @@ export interface InspectionWindow {
     scoreBreakdownV2: Record<string, number>;
     pressureHpa: number;
     pressureTrend: number;
+    pressureDelta3hr: number;
 }
 
 export class WeatherService {
@@ -332,7 +333,8 @@ export class WeatherService {
                         issuesV2,
                         scoreBreakdownV2: breakdownV2,
                         pressureHpa: pressure,
-                        pressureTrend
+                        pressureTrend,
+                        pressureDelta3hr
                     });
                 }
             }
