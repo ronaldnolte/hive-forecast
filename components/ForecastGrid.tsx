@@ -96,7 +96,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     const locationToday = now.toLocaleDateString('en-CA', { timeZone: timezone });
     const filteredDates = sortedDates.filter(dateStr => dateStr >= locationToday);
 
-    const timeSlots = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+    const timeSlots = Array.from(new Set(windows.map(w => w.displayHour))).sort((a, b) => a - b);
 
     const getScoreColor = (score: number) => {
         if (score >= 85) return 'bg-green-700';

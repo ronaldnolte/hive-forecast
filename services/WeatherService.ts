@@ -127,7 +127,34 @@ export class WeatherService {
             dayIndices[dayKey].push(i);
         }
 
-        const targetStartHours = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+        // Dynamically compute the earliest sunrise hour and latest sunset hour of the week
+        let earliestSunriseHour = 6; // default fallback
+        let latestSunsetHour = 18;  // default fallback
+
+        if (sunrises.length > 0) {
+            const sunriseHours = sunrises.map(s => parseInt(s.slice(11, 13)));
+            earliestSunriseHour = Math.min(...sunriseHours);
+        }
+
+        if (sunsets.length > 0) {
+            const sunsetHours = sunsets.map(s => {
+                const hourPart = parseInt(s.slice(11, 13));
+                const minutePart = parseInt(s.slice(14, 16));
+                // Ceil the sunset hour so we completely cover the hour during which sunset occurs
+                return minutePart > 0 ? hourPart + 1 : hourPart;
+            });
+            latestSunsetHour = Math.max(...sunsetHours);
+        }
+
+        // Apply sensible constraints
+        earliestSunriseHour = Math.max(0, Math.min(earliestSunriseHour, 12));
+        latestSunsetHour = Math.min(23, Math.max(latestSunsetHour, 12));
+
+        // Generate target start hours dynamically
+        const targetStartHours: number[] = [];
+        for (let h = earliestSunriseHour; h < latestSunsetHour; h++) {
+            targetStartHours.push(h);
+        }
 
         // Iterate over each day
         for (const dayKey in dayIndices) {
