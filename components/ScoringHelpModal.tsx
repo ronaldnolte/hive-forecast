@@ -192,6 +192,8 @@ export function ScoringHelpModal({ isOpen, onClose }: ScoringHelpModalProps) {
                                     <li><strong>Flight Disruption Wind:</strong> Wind speed &gt; 18mph (colony aggression risk)</li>
                                     <li><strong>Active Precipitation:</strong> Raining, stormy, or precipitation chance &ge; 50%</li>
                                     <li><strong>Severe Storm Plunge:</strong> 3-hour barometric pressure drop &ge; 4.0 hPa (severe front approaching)</li>
+                                    <li><strong>Wake-up Temperature:</strong> Must be at least 1 hour since temperature crossed &ge; 60°F (colony activity wake-up buffer)</li>
+                                    <li><strong>Sunset Safety Buffer:</strong> Inspection must finish at least 1 hour before daily sunset (allows foragers to safely return to hive)</li>
                                     <li><em>Note: A moderate drop of 1.5 to 4.0 hPa does not abort, but applies a <strong>-2 point penalty</strong>.</em></li>
                                 </ul>
                             </div>

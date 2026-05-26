@@ -84,7 +84,7 @@ export class WeatherService {
      */
     static async getWeatherForecast(lat: number, lng: number, elevation?: number, countryCode?: string): Promise<any> {
         const model = this.getModelForCountry(countryCode);
-        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m,pressure_msl,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7&models=${model}`;
+        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m,pressure_msl,surface_pressure&daily=sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7&models=${model}`;
 
         if (elevation !== undefined) {
             url += `&elevation=${elevation}`;
@@ -103,6 +103,10 @@ export class WeatherService {
     static calculateForecast(weatherData: any, isTBH: boolean = false, isMetric: boolean = false): InspectionWindow[] {
         const windows: InspectionWindow[] = [];
         const hourly = weatherData.hourly;
+        const daily = weatherData.daily || {};
+        const dailyTimes = (daily.time || []) as string[];
+        const sunrises = (daily.sunrise || []) as string[];
+        const sunsets = (daily.sunset || []) as string[];
 
         const times = hourly.time as string[];
         const temps = hourly.temperature_2m as number[];
@@ -239,6 +243,24 @@ export class WeatherService {
                     // ============================================
                     const issuesV2: string[] = [];
 
+                    // Dynamic Sunrise/Sunset & Wake-up Calculations
+                    const dailyIdx = dailyTimes.indexOf(dayKey);
+                    let sunsetHour = 18; // Fallback to 6:00 PM
+                    let sunsetMinute = 0;
+                    if (dailyIdx !== -1 && sunsets[dailyIdx]) {
+                        const sunsetStr = sunsets[dailyIdx];
+                        sunsetHour = parseInt(sunsetStr.slice(11, 13));
+                        sunsetMinute = parseInt(sunsetStr.slice(14, 16));
+                    }
+
+                    const slotEndHour = startHour + 1;
+                    const sunsetTimeInMinutes = sunsetHour * 60 + sunsetMinute;
+                    const slotEndTimeInMinutes = slotEndHour * 60;
+                    const isSafeBeforeSunset = slotEndTimeInMinutes <= (sunsetTimeInMinutes - 60);
+
+                    const temp1HourAgo = i > 0 ? (temps[i - 1] ?? temp) : temp;
+                    const isWarmEnough1HourAgo = temp1HourAgo >= 60;
+
                     // Step 1: Check Fail-Safes (Short-Circuit Hard Aborts)
                     if (temp < 57) {
                         issuesV2.push(`Brood Chill Threshold Triggered (Temp < 57°F / 14°C)`);
@@ -255,6 +277,15 @@ export class WeatherService {
                     if (wind > 18) {
                         const wStr = isMetric ? `${Math.round(18 * 1.60934)}km/h` : `18mph`;
                         issuesV2.push(`Flight Disruption Wind Triggered (Wind > ${wStr})`);
+                    }
+
+                    if (!isWarmEnough1HourAgo) {
+                        issuesV2.push(`Bees not awake (temperature 1 hour ago was ${Math.round(temp1HourAgo)}°F, must be 60°F+ for at least 1 hour)`);
+                    }
+
+                    if (!isSafeBeforeSunset) {
+                        const sunsetTimeStr = `${sunsetHour > 12 ? sunsetHour - 12 : sunsetHour}:${sunsetMinute.toString().padStart(2, '0')}${sunsetHour >= 12 ? 'pm' : 'am'}`;
+                        issuesV2.push(`Too close to sunset (must end at least 1 hour before sunset at ${sunsetTimeStr} to allow foragers to return)`);
                     }
 
                     // Step 2: High-Desert Barometric Pressure Velocity Calculation
