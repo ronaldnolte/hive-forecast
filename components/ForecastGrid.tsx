@@ -458,6 +458,9 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                         }`}>
                                             {selectedWindow.pressureDelta3hr > 0 ? '↓' : '↑'} {Math.abs(selectedWindow.pressureDelta3hr).toFixed(1)} hPa/3h
                                         </span>
+                                        {selectedWindow.pressureDelta3hr >= 1.5 && selectedWindow.pressureDelta3hr < 4.0 && (
+                                            <span className="text-[10px] text-orange-600 font-extrabold block mt-0.5">(-2 Penalty)</span>
+                                        )}
                                     </div>
                                 </div>
 
