@@ -24,7 +24,6 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
     const [error, setError] = useState<string | null>(null);
     const [selectedWindow, setSelectedWindow] = useState<InspectionWindow | null>(null);
     const [showHelpModal, setShowHelpModal] = useState(false);
-    const [isTBH, setIsTBH] = useState(false);
     const [resolvedCoords, setResolvedCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [diagWindow, setDiagWindow] = useState<InspectionWindow | null>(null);
 
@@ -65,7 +64,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                 }
 
                 // Pass isMetric preference to calculation
-                const forecast = WeatherService.calculateForecast(data, isTBH, isMetric);
+                const forecast = WeatherService.calculateForecast(data, false, isMetric);
                 setWindows(forecast);
             } catch (err: any) {
                 console.error('Forecast error:', err);
@@ -76,7 +75,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
         };
 
         fetchForecast();
-    }, [location, isTBH, isMetric]);
+    }, [location, isMetric]);
 
     // Group windows by date
     const gridData: Record<string, Record<number, InspectionWindow>> = {};
@@ -205,19 +204,6 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
 
             {/* Minimal Header: Legend + Help */}
             <div className="mb-6 space-y-4">
-                {/* TBH Mode Toggle */}
-                <div className="flex justify-center">
-                    <label className="flex items-center gap-2 cursor-pointer bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-shadow">
-                        <input
-                            type="checkbox"
-                            checked={isTBH}
-                            onChange={(e) => setIsTBH(e.target.checked)}
-                            className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
-                        />
-                        <span className="text-sm font-medium text-gray-700">Top Bar Hive Mode</span>
-                        <span className="text-[10px] text-gray-400">(heat penalty)</span>
-                    </label>
-                </div>
 
                 {/* Unified Legend */}
                 <div className="flex flex-col items-center justify-center text-[10px] sm:text-xs bg-white/70 p-4 rounded-2xl border border-amber-100 shadow-sm max-w-sm mx-auto backdrop-blur-sm">
