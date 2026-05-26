@@ -220,32 +220,19 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                 </div>
 
                 {/* Unified Legend */}
-                <div className="flex flex-col md:flex-row gap-4 justify-center items-center text-[10px] sm:text-xs bg-white/70 p-4 rounded-2xl border border-amber-100 shadow-sm max-w-3xl mx-auto backdrop-blur-sm">
-                    <div className="flex flex-col items-center">
-                        <span className="font-extrabold text-[#8B4513] mb-1.5 uppercase tracking-wider text-[9px]">Grid 1: Continuous (0-100)</span>
-                        <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
-                            <LegendItem label="Excellent 85+" color="bg-green-700" />
-                            <LegendItem label="Good 70-84" color="bg-green-500" />
-                            <LegendItem label="Fair 55-69" color="bg-amber-400" />
-                            <LegendItem label="Poor 40-54" color="bg-orange-500" />
-                            <LegendItem label="Inadvisable <40" color="bg-red-500" />
-                        </div>
-                    </div>
-                    <div className="hidden md:block h-10 w-px bg-amber-200/60"></div>
-                    <div className="flex flex-col items-center">
-                        <span className="font-extrabold text-[#8B4513] mb-1.5 uppercase tracking-wider text-[9px]">Grid 2: Decision Points (0-9)</span>
-                        <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
-                            <LegendItem label="Optimal 7-9" color="bg-green-600" />
-                            <LegendItem label="Viable 4-6" color="bg-amber-400" />
-                            <LegendItem label="Inadvisable 0-3" color="bg-red-500" />
-                        </div>
+                <div className="flex flex-col items-center justify-center text-[10px] sm:text-xs bg-white/70 p-4 rounded-2xl border border-amber-100 shadow-sm max-w-sm mx-auto backdrop-blur-sm">
+                    <span className="font-extrabold text-[#8B4513] mb-1.5 uppercase tracking-wider text-[9px]">Decision Points (0-9)</span>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
+                        <LegendItem label="Optimal 7-9" color="bg-green-600" />
+                        <LegendItem label="Viable 4-6" color="bg-amber-400" />
+                        <LegendItem label="Inadvisable 0-3" color="bg-red-500" />
                     </div>
                 </div>
 
                 {/* Help Link */}
                 <div className="flex flex-col items-center gap-2">
                     <div className="text-center text-[10px] text-gray-400 italic">
-                        Tap a cell on either grid to view side-by-side details
+                        Tap a cell to view detailed inspection readiness breakdown
                     </div>
                     <button
                         onClick={() => setShowHelpModal(true)}
@@ -256,125 +243,68 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                 </div>
             </div>
 
-            {/* Grids Side-by-Side Wrapper */}
-            <div className="flex flex-col xl:flex-row gap-8 justify-center items-start w-full max-w-7xl mx-auto px-2">
-                
-                {/* GRID 1: V1 SCORE (0-100) */}
-                <div className="w-full xl:w-1/2 flex flex-col items-center">
-                    <h3 className="text-sm font-black text-[#8B4513] mb-3.5 flex items-center gap-2 bg-white/70 border border-amber-200 px-4 py-2 rounded-full shadow-sm">
-                        <span>📊</span> Grid 1: Original Score (0-100)
-                    </h3>
-                    <div className="overflow-x-auto rounded-xl shadow-md border border-gray-200 w-full max-w-2xl bg-white">
-                        <table className="border-collapse w-full text-xs">
-                            <thead>
-                                <tr className="bg-amber-50/50">
-                                    <th className="border-b border-r border-gray-200 px-3 py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513]">Time</th>
+            {/* V2 GRID (0-9 POINTS) */}
+            <div className="w-full flex flex-col items-center max-w-4xl mx-auto px-2">
+                <h3 className="text-sm font-black text-[#8B4513] mb-3.5 flex items-center gap-2 bg-white/70 border border-amber-200 px-4 py-2 rounded-full shadow-sm">
+                    <span>🔬</span> Bee Inspection Forecast (0-9 Decision Points)
+                </h3>
+                <div className="overflow-x-auto rounded-xl shadow-md border border-gray-200 w-full bg-white">
+                    <table className="border-collapse w-full text-xs">
+                        <thead>
+                            <tr className="bg-amber-50/50">
+                                <th className="border-b border-r border-gray-200 px-3 py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513]">Time</th>
+                                {filteredDates.map(dateStr => {
+                                    const date = new Date(dateStr + 'T12:00:00');
+                                    return (
+                                        <th key={dateStr} className="border-b border-gray-200 px-2 py-2.5 min-w-[70px] text-center">
+                                            <div className="font-extrabold text-[#8B4513]">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                                            <div className="text-[10px] text-gray-500 font-bold">{date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}</div>
+                                        </th>
+                                    );
+                                })}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {timeSlots.map(hour => (
+                                <tr key={hour} className="hover:bg-amber-50/20">
+                                    <td className="border-b border-r border-gray-200 px-3 py-2 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[10px]">
+                                        {formatTimeSlot(hour)}
+                                    </td>
                                     {filteredDates.map(dateStr => {
-                                        const date = new Date(dateStr + 'T12:00:00');
+                                        const window = gridData[dateStr]?.[hour];
+                                        if (!window) {
+                                            return <td key={dateStr} className="border-b border-gray-200 bg-gray-50 h-10 w-16"></td>;
+                                        }
+
+                                        const isFail = window.classificationV2 === 'Inadvisable';
+                                        const textColor = isFail ? 'text-black' : 'text-white';
+
                                         return (
-                                            <th key={dateStr} className="border-b border-gray-200 px-2 py-2.5 min-w-[65px] text-center">
-                                                <div className="font-extrabold text-[#8B4513]">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                                                <div className="text-[10px] text-gray-500 font-bold">{date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}</div>
-                                            </th>
+                                            <td
+                                                key={dateStr}
+                                                className={`border-b border-gray-200 h-10 w-16 cursor-pointer hover:opacity-90 transition-opacity ${getScoreColorV2(window.classificationV2, window.scoreV2)}`}
+                                                onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
+                                            >
+                                                <div className={`flex items-center justify-center h-full font-black text-sm ${textColor}`}>
+                                                    {window.scoreV2}
+                                                </div>
+                                            </td>
                                         );
                                     })}
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {timeSlots.map(hour => (
-                                    <tr key={hour} className="hover:bg-amber-50/20">
-                                        <td className="border-b border-r border-gray-200 px-3 py-2 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[10px]">
-                                            {formatTimeSlot(hour)}
-                                        </td>
-                                        {filteredDates.map(dateStr => {
-                                            const window = gridData[dateStr]?.[hour];
-                                            if (!window) {
-                                                return <td key={dateStr} className="border-b border-gray-200 bg-gray-50 h-10 w-16"></td>;
-                                            }
-
-                                            const isFail = window.score < 40 || window.issues.length > 0;
-                                            const textColor = isFail ? 'text-black' : 'text-white';
-
-                                            return (
-                                                <td
-                                                    key={dateStr}
-                                                    className={`border-b border-gray-200 h-10 w-16 cursor-pointer hover:opacity-90 transition-opacity ${getScoreColor(window.score)}`}
-                                                    onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
-                                                >
-                                                    <div className={`flex items-center justify-center h-full font-black text-sm ${textColor}`}>
-                                                        {Math.round(window.score)}
-                                                    </div>
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-
-                {/* GRID 2: V2 SCORE (0-9 POINTS) */}
-                <div className="w-full xl:w-1/2 flex flex-col items-center">
-                    <h3 className="text-sm font-black text-[#8B4513] mb-3.5 flex items-center gap-2 bg-white/70 border border-amber-200 px-4 py-2 rounded-full shadow-sm">
-                        <span>🔬</span> Grid 2: Decision Points (0-9)
-                    </h3>
-                    <div className="overflow-x-auto rounded-xl shadow-md border border-gray-200 w-full max-w-2xl bg-white">
-                        <table className="border-collapse w-full text-xs">
-                            <thead>
-                                <tr className="bg-amber-50/50">
-                                    <th className="border-b border-r border-gray-200 px-3 py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513]">Time</th>
-                                    {filteredDates.map(dateStr => {
-                                        const date = new Date(dateStr + 'T12:00:00');
-                                        return (
-                                            <th key={dateStr} className="border-b border-gray-200 px-2 py-2.5 min-w-[65px] text-center">
-                                                <div className="font-extrabold text-[#8B4513]">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                                                <div className="text-[10px] text-gray-500 font-bold">{date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}</div>
-                                            </th>
-                                        );
-                                    })}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {timeSlots.map(hour => (
-                                    <tr key={hour} className="hover:bg-amber-50/20">
-                                        <td className="border-b border-r border-gray-200 px-3 py-2 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[10px]">
-                                            {formatTimeSlot(hour)}
-                                        </td>
-                                        {filteredDates.map(dateStr => {
-                                            const window = gridData[dateStr]?.[hour];
-                                            if (!window) {
-                                                return <td key={dateStr} className="border-b border-gray-200 bg-gray-50 h-10 w-16"></td>;
-                                            }
-
-                                            return (
-                                                <td
-                                                    key={dateStr}
-                                                    className={`border-b border-gray-200 h-10 w-16 cursor-pointer hover:opacity-90 transition-opacity ${getScoreColorV2(window.classificationV2, window.scoreV2)}`}
-                                                    onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
-                                                >
-                                                    <div className="flex items-center justify-center h-full font-black text-sm text-white">
-                                                        {window.scoreV2}
-                                                    </div>
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
 
-            {/* Side-by-Side Detailed Comparison Modal */}
+            {/* Detailed Inspection Readiness Modal */}
             {selectedWindow && (
                 <div className="fixed inset-0 bg-black/60 flex items-start justify-center p-4 z-50 backdrop-blur-sm overflow-y-auto" onClick={() => setSelectedWindow(null)}>
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 mt-8 relative" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 mt-8 relative" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-start mb-6">
                             <div>
-                                <h3 className="text-2xl font-black text-[#8B4513]">Inspection Window Comparison</h3>
+                                <h3 className="text-2xl font-black text-[#8B4513]">Inspection Window Details</h3>
                                 <p className="text-sm text-gray-500 font-bold uppercase tracking-wide">
                                     {selectedWindow.startTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                                     <span className="text-amber-600 ml-2 font-black">
@@ -385,108 +315,66 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                             <button onClick={() => setSelectedWindow(null)} className="text-3xl text-gray-400 hover:text-gray-600 w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">&times;</button>
                         </div>
 
-                        {/* Side-by-Side Methodology Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                            
-                            {/* METHODOLOGY 1 (V1) */}
-                            <div className="bg-amber-50/30 border border-amber-100 rounded-2xl p-5 shadow-sm space-y-4">
-                                <h4 className="text-base font-black text-[#8B4513] border-b border-amber-100 pb-2 flex items-center gap-2">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                                    V1: Continuous Score (0-100)
-                                </h4>
-                                
-                                <div className={`${getScoreColor(selectedWindow.score)} rounded-xl p-5 text-center text-white shadow-md`}>
-                                    <span className="text-5xl font-black">{Math.round(selectedWindow.score)}</span>
-                                    <span className="text-sm font-black block opacity-90 uppercase mt-1">
-                                        {selectedWindow.score >= 85 ? 'Excellent' :
-                                         selectedWindow.score >= 70 ? 'Good' :
-                                         selectedWindow.score >= 55 ? 'Fair' :
-                                         selectedWindow.score >= 40 ? 'Poor' : 'Not Recommended'}
-                                    </span>
-                                </div>
+                        {/* V2 Decision Points Details */}
+                        <div className="bg-amber-50/30 border border-amber-100 rounded-2xl p-5 shadow-sm space-y-4">
+                            <h4 className="text-base font-black text-[#8B4513] border-b border-amber-100 pb-2 flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+                                Suitability Score Breakdown
+                            </h4>
 
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <StatCard label="Temperature" value={formatTemp(selectedWindow.tempF)} score={selectedWindow.scoreBreakdown['Temperature']} maxScore={40} />
-                                    <StatCard label="Cloud Cover" value={`${Math.round(selectedWindow.cloudCover)}%`} score={selectedWindow.scoreBreakdown['Cloud Cover']} maxScore={20} />
-                                    <StatCard label="Wind Speed" value={formatSpeed(selectedWindow.windMph)} score={selectedWindow.scoreBreakdown['Wind Speed']} maxScore={20} />
-                                    <StatCard label="Precip Chance" value={`${Math.round(selectedWindow.precipProb)}%`} score={selectedWindow.scoreBreakdown['Precipitation']} maxScore={15} />
-                                    <StatCard label="Humidity" value={`${Math.round(selectedWindow.humidity)}%`} score={selectedWindow.scoreBreakdown['Humidity']} maxScore={5} />
-                                </div>
-
-                                {selectedWindow.issues.length > 0 && (
-                                    <div className="bg-red-50 p-3 rounded-xl border border-red-100 text-xs">
-                                        <h5 className="font-bold text-red-700 mb-1">V1 Penalties/Issues:</h5>
-                                        <ul className="text-red-600 space-y-0.5 list-disc pl-4 font-medium">
-                                            {selectedWindow.issues.map((issue, idx) => <li key={idx}>{issue}</li>)}
-                                        </ul>
-                                    </div>
-                                )}
+                            <div className={`${getScoreColorV2(selectedWindow.classificationV2, selectedWindow.scoreV2)} rounded-xl p-5 text-center shadow-md relative overflow-hidden`}>
+                                <div className="absolute top-0 right-0 p-2 text-white/10 font-bold text-4xl select-none">V2</div>
+                                <span className={`text-5xl font-black ${selectedWindow.classificationV2 === 'Inadvisable' ? 'text-black' : 'text-white'}`}>
+                                    {selectedWindow.scoreV2} / 9
+                                </span>
+                                <span className={`text-sm font-black block uppercase mt-1 ${selectedWindow.classificationV2 === 'Inadvisable' ? 'text-black/80' : 'text-white/90'}`}>
+                                    {selectedWindow.classificationV2}
+                                </span>
                             </div>
 
-                            {/* METHODOLOGY 2 (V2) */}
-                            <div className="bg-amber-50/30 border border-amber-100 rounded-2xl p-5 shadow-sm space-y-4">
-                                <h4 className="text-base font-black text-[#8B4513] border-b border-amber-100 pb-2 flex items-center gap-2">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                                    V2: Decision Points (0-9)
-                                </h4>
-
-                                <div className={`${getScoreColorV2(selectedWindow.classificationV2, selectedWindow.scoreV2)} rounded-xl p-5 text-center text-white shadow-md`}>
-                                    <span className="text-5xl font-black">{selectedWindow.scoreV2} / 9</span>
-                                    <span className="text-sm font-black block opacity-90 uppercase mt-1">
-                                        {selectedWindow.classificationV2}
-                                    </span>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <StatCard label="Temperature" value={formatTemp(selectedWindow.tempF)} score={selectedWindow.scoreBreakdownV2['Temperature']} maxScore={3} />
-                                    <StatCard label="Time of Day" value={formatTimeSlot(selectedWindow.startTime.getHours())} score={selectedWindow.scoreBreakdownV2['Time of Day']} maxScore={2} />
-                                    <StatCard label="Sky Condition" value={selectedWindow.cloudCover <= 30 ? 'Sunny' : 'Cloudy'} score={selectedWindow.scoreBreakdownV2['Sky Condition']} maxScore={2} />
-                                    <StatCard label="Wind Speed" value={formatSpeed(selectedWindow.windMph)} score={selectedWindow.scoreBreakdownV2['Wind Speed']} maxScore={2} />
-                                </div>
-
-                                {/* Barometric storm tracking stats in V2 */}
-                                <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 text-xs flex justify-between">
-                                    <div>
-                                        <span className="text-gray-500 font-bold block">Barometric Pressure</span>
-                                        <span className="font-bold text-gray-800">{selectedWindow.pressureHpa.toFixed(1)} hPa</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-gray-500 font-bold block">3-Hour Delta</span>
-                                        <span className={`font-bold ${
-                                            selectedWindow.pressureDelta3hr >= 4.0 ? 'text-red-600' :
-                                            selectedWindow.pressureDelta3hr >= 1.5 ? 'text-orange-500' : 'text-blue-600'
-                                        }`}>
-                                            {selectedWindow.pressureDelta3hr > 0 ? '↓' : '↑'} {Math.abs(selectedWindow.pressureDelta3hr).toFixed(1)} hPa/3h
-                                        </span>
-                                        {selectedWindow.pressureDelta3hr >= 1.5 && selectedWindow.pressureDelta3hr < 4.0 && (
-                                            <span className="text-[10px] text-orange-600 font-extrabold block mt-0.5">(-2 Penalty)</span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {selectedWindow.issuesV2.length > 0 ? (
-                                    <div className="bg-red-50 p-3 rounded-xl border border-red-100 text-xs">
-                                        <h5 className="font-bold text-red-700 mb-1">V2 Tripped Fail-Safes:</h5>
-                                        <ul className="text-red-600 space-y-0.5 list-disc pl-4 font-bold">
-                                            {selectedWindow.issuesV2.map((issue, idx) => <li key={idx}>{issue}</li>)}
-                                        </ul>
-                                    </div>
-                                ) : selectedWindow.pressureDelta3hr >= 1.5 && selectedWindow.pressureDelta3hr < 4.0 ? (
-                                    <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-800 font-bold">
-                                        ⚠ Warning: Moderate pressure drop detected (possible storm front approaching). Keep inspection brief!
-                                    </div>
-                                ) : (
-                                    <div className="bg-green-50 p-3 rounded-xl border border-green-100 text-xs text-green-700 font-bold">
-                                        ✓ Fail-safes cleared! Inspection is safe to conduct.
-                                    </div>
-                                )}
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                                <StatCard label="Temperature" value={formatTemp(selectedWindow.tempF)} score={selectedWindow.scoreBreakdownV2['Temperature']} maxScore={3} />
+                                <StatCard label="Time of Day" value={formatTimeSlot(selectedWindow.startTime.getHours())} score={selectedWindow.scoreBreakdownV2['Time of Day']} maxScore={2} />
+                                <StatCard label="Sky Condition" value={selectedWindow.cloudCover <= 30 ? 'Sunny' : 'Cloudy'} score={selectedWindow.scoreBreakdownV2['Sky Condition']} maxScore={2} />
+                                <StatCard label="Wind Speed" value={formatSpeed(selectedWindow.windMph)} score={selectedWindow.scoreBreakdownV2['Wind Speed']} maxScore={2} />
                             </div>
 
-                        </div>
-                        
-                        {/* Footer text */}
-                        <div className="text-center mt-6 text-[10px] text-gray-400 font-bold italic">
-                            Methodology comparison helps identify the gentlest environment for your bees and comb.
+                            {/* Barometric storm tracking stats */}
+                            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 text-xs flex justify-between">
+                                <div>
+                                    <span className="text-gray-500 font-bold block">Barometric Pressure</span>
+                                    <span className="font-bold text-gray-800">{selectedWindow.pressureHpa.toFixed(1)} hPa</span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-gray-500 font-bold block">3-Hour Delta</span>
+                                    <span className={`font-bold ${
+                                        selectedWindow.pressureDelta3hr >= 4.0 ? 'text-red-600' :
+                                        selectedWindow.pressureDelta3hr >= 1.5 ? 'text-orange-500' : 'text-blue-600'
+                                    }`}>
+                                        {selectedWindow.pressureDelta3hr > 0 ? '↓' : '↑'} {Math.abs(selectedWindow.pressureDelta3hr).toFixed(1)} hPa/3h
+                                    </span>
+                                    {selectedWindow.pressureDelta3hr >= 1.5 && selectedWindow.pressureDelta3hr < 4.0 && (
+                                        <span className="text-[10px] text-orange-600 font-extrabold block mt-0.5">(-2 Penalty)</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {selectedWindow.issuesV2.length > 0 ? (
+                                <div className="bg-red-50 p-3 rounded-xl border border-red-100 text-xs">
+                                    <h5 className="font-bold text-red-700 mb-1">Tripped Fail-Safes:</h5>
+                                    <ul className="text-red-600 space-y-0.5 list-disc pl-4 font-bold">
+                                        {selectedWindow.issuesV2.map((issue, idx) => <li key={idx}>{issue}</li>)}
+                                    </ul>
+                                </div>
+                            ) : selectedWindow.pressureDelta3hr >= 1.5 && selectedWindow.pressureDelta3hr < 4.0 ? (
+                                <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-800 font-bold">
+                                    ⚠ Warning: Moderate pressure drop detected (possible storm front approaching). Keep inspection brief!
+                                </div>
+                            ) : (
+                                <div className="bg-green-50 p-3 rounded-xl border border-green-100 text-xs text-green-700 font-bold">
+                                    ✓ Fail-safes cleared! Inspection is safe to conduct.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
