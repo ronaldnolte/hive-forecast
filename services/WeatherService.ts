@@ -84,7 +84,7 @@ export class WeatherService {
      */
     static async getWeatherForecast(lat: number, lng: number, elevation?: number, countryCode?: string): Promise<any> {
         const model = this.getModelForCountry(countryCode);
-        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m,pressure_msl&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7&models=${model}`;
+        let url = `${this.WEATHER_API_URL}?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weathercode,cloudcover,windspeed_10m,pressure_msl,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7&models=${model}`;
 
         if (elevation !== undefined) {
             url += `&elevation=${elevation}`;
@@ -113,6 +113,7 @@ export class WeatherService {
         const clouds = hourly.cloudcover as number[];
         const winds = hourly.windspeed_10m as number[];
         const pressures = (hourly.pressure_msl || []) as number[];
+        const surfacePressures = (hourly.surface_pressure || hourly.pressure_msl || []) as number[];
 
         // Group indices by Date (yyyy-MM-dd)
         const dayIndices: Record<string, number[]> = {};
@@ -257,8 +258,17 @@ export class WeatherService {
                     }
 
                     // Step 2: High-Desert Barometric Pressure Velocity Calculation
-                    const oldestPressure = i >= 3 ? (pressures[i - 3] || pressure) : (pressures[0] || pressure);
-                    const pressureDelta3hr = oldestPressure - pressure; // positive means dropping
+                    // Helper to compute a 3-hour trailing moving average smoothed station pressure
+                    const getSmoothedSurfacePressure = (index: number): number => {
+                        const p1 = surfacePressures[index] || pressure;
+                        const p2 = index > 0 ? (surfacePressures[index - 1] || p1) : p1;
+                        const p3 = index > 1 ? (surfacePressures[index - 2] || p2) : p2;
+                        return (p1 + p2 + p3) / 3;
+                    };
+
+                    const s_current = getSmoothedSurfacePressure(i);
+                    const s_oldest = i >= 3 ? getSmoothedSurfacePressure(i - 3) : getSmoothedSurfacePressure(0);
+                    const pressureDelta3hr = s_oldest - s_current; // positive means dropping
                     
                     let pressure_penalty = 0;
                     if (pressureDelta3hr >= 4.0) {
