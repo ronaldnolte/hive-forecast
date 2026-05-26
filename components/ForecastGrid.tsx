@@ -269,10 +269,10 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                             <div className="font-extrabold text-[#8B4513] hidden sm:block">
                                                 {date.toLocaleDateString('en-US', { weekday: 'short' })}
                                             </div>
-                                            <div className="font-extrabold text-[#8B4513] block sm:hidden text-[10px]">
+                                            <div className="font-extrabold text-[#8B4513] block sm:hidden text-[11px]">
                                                 {getCompactDayStr(dateStr)}
                                             </div>
-                                            <div className="text-[8px] sm:text-[10px] text-gray-500 font-bold leading-none mt-0.5">
+                                            <div className="text-[9px] sm:text-[10px] text-gray-500 font-bold leading-none mt-0.5">
                                                 {date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
                                             </div>
                                         </th>
@@ -283,7 +283,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                         <tbody>
                             {timeSlots.map(hour => (
                                 <tr key={hour} className="hover:bg-amber-50/20">
-                                    <td className="border-b border-r border-gray-200 h-7 sm:h-10 py-0 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[9px] sm:text-[10px] w-[46px] sm:w-20 text-center">
+                                    <td className="border-b border-r border-gray-200 h-7 sm:h-10 py-0 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[10px] sm:text-[10px] w-[46px] sm:w-20 text-center">
                                         {formatTimeSlot(hour)}
                                     </td>
                                     {filteredDates.map(dateStr => {
@@ -301,7 +301,7 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                                 className={`border-b border-gray-200 h-7 sm:h-10 cursor-pointer hover:opacity-90 transition-opacity min-w-0 ${getScoreColorV2(window.classificationV2, window.scoreV2)}`}
                                                 onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
                                             >
-                                                <div className={`flex items-center justify-center h-full font-black text-[10px] sm:text-sm ${textColor}`}>
+                                                <div className={`flex items-center justify-center h-full font-black text-xs sm:text-sm ${textColor}`}>
                                                     {window.scoreV2}
                                                 </div>
                                             </td>
