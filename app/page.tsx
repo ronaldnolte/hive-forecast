@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { LocationInput } from '@/components/LocationInput';
 import { ForecastGrid } from '@/components/ForecastGrid';
-import PWAInstallButton from '@/components/PWAInstallButton';
 
 interface LocationState {
   type: 'zip' | 'coords';
@@ -82,14 +81,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Install button anchored above content */}
-      {!location && (
-        <div className="flex justify-center pt-4">
-          <div className="w-full max-w-md flex justify-center px-4">
-            <PWAInstallButton />
-          </div>
-        </div>
-      )}
 
       {view === 'forecast' && location ? (
         <ForecastGrid location={location} onBack={handleBack} />
