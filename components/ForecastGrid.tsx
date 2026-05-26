@@ -471,6 +471,10 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                             {selectedWindow.issuesV2.map((issue, idx) => <li key={idx}>{issue}</li>)}
                                         </ul>
                                     </div>
+                                ) : selectedWindow.pressureDelta3hr >= 1.5 && selectedWindow.pressureDelta3hr < 4.0 ? (
+                                    <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-800 font-bold">
+                                        ⚠ Warning: Moderate pressure drop detected (possible storm front approaching). Keep inspection brief!
+                                    </div>
                                 ) : (
                                     <div className="bg-green-50 p-3 rounded-xl border border-green-100 text-xs text-green-700 font-bold">
                                         ✓ Fail-safes cleared! Inspection is safe to conduct.
