@@ -230,12 +230,12 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
             </div>
 
             {/* V2 GRID (0-9 POINTS) */}
-            <div className="w-full flex flex-col items-center max-w-4xl mx-auto px-1 sm:px-2">
+            <div className="w-full flex flex-col items-center max-w-2xl mx-auto px-1 sm:px-2">
                 <div className="rounded-xl shadow-md border border-gray-200 w-full bg-white overflow-hidden">
                     <table className="border-collapse w-full text-xs table-fixed">
                         <thead>
                             <tr className="bg-amber-50/50">
-                                <th className="border-b border-r border-gray-200 py-1.5 sm:py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513] w-[46px] sm:w-20 text-center">Time</th>
+                                <th className="border-b border-r border-gray-200 py-1.5 sm:py-2.5 font-bold sticky left-0 bg-amber-50/90 z-10 text-[#8B4513] w-[46px] sm:w-[72px] text-center">Time</th>
                                 {filteredDates.map(dateStr => {
                                     const date = new Date(dateStr + 'T12:00:00');
                                     // Compact 2-letter weekday formatter for mobile screens
@@ -266,13 +266,13 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                         <tbody>
                             {timeSlots.map(hour => (
                                 <tr key={hour} className="hover:bg-amber-50/20">
-                                    <td className="border-b border-r border-gray-200 h-7 sm:h-10 py-0 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[9px] sm:text-[10px] w-[46px] sm:w-20 text-center">
+                                    <td className="border-b border-r border-gray-200 h-7 sm:h-[72px] py-0 font-bold sticky left-0 bg-white z-10 text-gray-500 text-[9px] sm:text-[10px] w-[46px] sm:w-[72px] text-center">
                                         {formatTimeSlot(hour)}
                                     </td>
                                     {filteredDates.map(dateStr => {
                                         const window = gridData[dateStr]?.[hour];
                                         if (!window) {
-                                            return <td key={dateStr} className="border-b border-gray-200 bg-gray-50 h-7 sm:h-10 min-w-0"></td>;
+                                            return <td key={dateStr} className="border-b border-gray-200 bg-gray-50 h-7 sm:h-[72px] min-w-0"></td>;
                                         }
 
                                         const isFail = window.classificationV2 === 'Inadvisable';
@@ -281,10 +281,10 @@ export function ForecastGrid({ location, onBack }: ForecastGridProps) {
                                         return (
                                             <td
                                                 key={dateStr}
-                                                className={`border-b border-gray-200 h-7 sm:h-10 cursor-pointer hover:opacity-90 transition-opacity min-w-0 ${getScoreColorV2(window.classificationV2, window.scoreV2)}`}
+                                                className={`border-b border-gray-200 h-7 sm:h-[72px] cursor-pointer hover:opacity-90 transition-opacity min-w-0 ${getScoreColorV2(window.classificationV2, window.scoreV2)}`}
                                                 onClick={() => { setSelectedWindow(window); setDiagWindow(window); }}
                                             >
-                                                <div className={`flex items-center justify-center h-full font-black text-[10px] sm:text-sm ${textColor}`}>
+                                                <div className={`flex items-center justify-center h-full font-black text-[10px] sm:text-lg ${textColor}`}>
                                                     {window.scoreV2}
                                                 </div>
                                             </td>
