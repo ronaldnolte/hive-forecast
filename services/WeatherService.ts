@@ -313,34 +313,33 @@ export class WeatherService {
                     let timePts = 0;
                     let skyPts = 0;
                     let windPts = 0;
-                    let scoreV2 = 0;
-                    let classificationV2: 'Optimal' | 'Viable' | 'Inadvisable' = 'Inadvisable';
 
+                    // Temperature (Optimal: 68-85 -> +3; Sub-optimal: 58-67 or 86-91 -> +1)
+                    if (temp >= 68 && temp <= 85) tempPts = 3;
+                    else if ((temp >= 58 && temp <= 67) || (temp >= 86 && temp <= 91)) tempPts = 1;
+                    
+                    // Time of Day (Optimal Foraging Window: 10am-2pm -> +2; Sub-optimal: 8:30am-9:59am or 2:01pm-5pm [slots 8-9, 14-17] -> +1)
+                    if (startHour >= 10 && startHour <= 13) timePts = 2;
+                    else if ((startHour >= 8 && startHour <= 9) || (startHour >= 14 && startHour <= 17)) timePts = 1;
+                    
+                    // Wind (Optimal: <10mph -> +2; Sub-optimal: 10-15mph -> +1; else 0)
+                    if (wind < 10) windPts = 2;
+                    else if (wind >= 10 && wind <= 15) windPts = 1;
+
+                    // Sky Condition (Clear: <30% -> +2; Partly Cloudy: 30-70% -> +1; else 0)
+                    if (cloud < 30) skyPts = 2;
+                    else if (cloud >= 30 && cloud <= 70) skyPts = 1;
+
+                    // Apply Barometric Pressure Penalty
+                    const scoreV2 = Math.max(0, tempPts + timePts + skyPts + windPts + pressure_penalty);
+                    
+                    // Determine Suitability Classification
+                    let classificationV2: 'Optimal' | 'Viable' | 'Inadvisable' = 'Inadvisable';
                     if (issuesV2.length > 0) {
-                        // Hard Abort triggered: do not calculate scoring points (returns 0)
-                        scoreV2 = 0;
+                        // Hard Abort triggered: classification is forced to Inadvisable to show Red Cell warning,
+                        // but points and scores are fully calculated and displayed!
                         classificationV2 = 'Inadvisable';
                     } else {
-                        // Temperature (Optimal: 68-85 -> +3; Sub-optimal: 58-67 or 86-91 -> +1)
-                        if (temp >= 68 && temp <= 85) tempPts = 3;
-                        else if ((temp >= 58 && temp <= 67) || (temp >= 86 && temp <= 91)) tempPts = 1;
-                        
-                        // Time of Day (Optimal Foraging Window: 10am-2pm -> +2; Sub-optimal: 8:30am-9:59am or 2:01pm-5pm -> +1)
-                        if (startHour >= 10 && startHour <= 13) timePts = 2;
-                        else if ((startHour >= 8 && startHour <= 9) || (startHour >= 14 && startHour <= 16)) timePts = 1;
-                        
-                        // Wind (Optimal: <10mph -> +2; Sub-optimal: 10-15mph -> +1; else 0)
-                        if (wind < 10) windPts = 2;
-                        else if (wind >= 10 && wind <= 15) windPts = 1;
-
-                        // Sky Condition (Clear: <30% -> +2; Partly Cloudy: 30-70% -> +1; else 0)
-                        if (cloud < 30) skyPts = 2;
-                        else if (cloud >= 30 && cloud <= 70) skyPts = 1;
-
-                        // Apply Barometric Pressure Penalty
-                        scoreV2 = Math.max(0, tempPts + timePts + skyPts + windPts + pressure_penalty);
-                        
-                        // Determine Suitability Classification
                         if (scoreV2 >= 7) classificationV2 = 'Optimal';
                         else if (scoreV2 >= 4) classificationV2 = 'Viable';
                         else classificationV2 = 'Inadvisable';
