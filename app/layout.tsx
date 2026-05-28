@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Forecast",
+    title: "BeekTools Forecast",
   },
   manifest: "/manifest.json",
   icons: {
