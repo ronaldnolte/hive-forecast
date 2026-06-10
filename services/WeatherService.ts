@@ -341,8 +341,9 @@ export class WeatherService {
                     let windPts = 0;
 
                     // Temperature (Optimal: 68-85 -> +3; Sub-optimal: 58-67 or 86-91 -> +1)
-                    if (temp >= 68 && temp <= 85) tempPts = 3;
-                    else if ((temp >= 58 && temp <= 67) || (temp >= 86 && temp <= 91)) tempPts = 1;
+                    const tempRounded = Math.round(temp);
+                    if (tempRounded >= 68 && tempRounded <= 85) tempPts = 3;
+                    else if ((tempRounded >= 58 && tempRounded <= 67) || (tempRounded >= 86 && tempRounded <= 91)) tempPts = 1;
                     
                     // Time of Day (Optimal: >= 55°F 1 hour ago AND >= 1 hour before sunset -> +2; else 0)
                     if (isSafeBeforeSunset && temp1HourAgo >= 55) {
