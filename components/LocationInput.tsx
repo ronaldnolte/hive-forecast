@@ -184,6 +184,7 @@ export function LocationInput({ onLocationSubmit, initialValues }: LocationInput
                         Remember this location
                     </label>
                 </div>
+                <p className="text-[10px] text-gray-400 text-center mt-3">v1.0.1</p>
             </div>
 
             <p className="mt-8 text-xs text-gray-400 text-center max-w-xs">

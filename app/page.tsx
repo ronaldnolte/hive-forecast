@@ -68,8 +68,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      <div className="fixed bottom-2 right-3 text-[10px] text-gray-500 select-none z-50">v1.0.1</div>
-
       {/* Logo in upper left - Only visible on input screen */}
       {view === 'input' && (
         <div className="absolute top-4 left-4 z-50">
